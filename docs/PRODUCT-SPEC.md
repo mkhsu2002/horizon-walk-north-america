@@ -29,6 +29,10 @@ Turn everyday walking, anywhere, into a long-distance virtual journey. The new N
 - Evaluate North American and future comparison cohorts using comparable first-week first-unlock and second-week return measures, plus postcard collection rate when earned. Do not compare full-route completion across different route lengths or attribute outcome differences to the route alone if interface or cohorts also differ. No new telemetry required to ship the MVP.
 - At submission: include the working app URL, public repository and appropriate open-source license, root Kiro-generated artifacts and truthful Kiro usage summary, and a public YouTube demo under three minutes. Create implementation and substantive Kiro artifacts during the submission period. Disclose prior work or assets if ever incorporated; do not copy the separate Asia app. Keep all credentials, signup details, private notes and data out of this repository.
 
+## Chapter planning
+
+See the [Illinois station planning sheet](ILLINOIS-STATION-PLAN.md) for ordered candidate stops, unverified distance fields, the fallback First Miles reward, and the early printed-passport acceptance case. Platform and data-source acceptance remain governed by this product specification.
+
 ## Sources
 
 - [National Park Service: Route 66](https://home.nps.gov/articles/000/route-66-national.htm)
