@@ -352,3 +352,19 @@ button:disabled { opacity: 0.4; cursor: not-allowed; }
   .passport-sheet { margin:0; padding:.25in; width:100%; border-radius:0; break-inside:avoid; box-sizing:border-box; print-color-adjust:exact; -webkit-print-color-adjust:exact; }
   .passport-art img { max-height:3.05in; max-width:6.2in; }
 }
+
+.route-chapter { width:min(760px,100%); margin:0 auto; padding:0 1rem 2rem; scroll-margin:1rem; }
+.route-intro { padding:clamp(1rem,3vw,1.65rem); background:#252c43; border:1px solid #475271; border-radius:12px 12px 0 0; }
+.route-intro h2 { color:var(--clr-text); font:700 clamp(1.4rem,4vw,2rem)/1.2 var(--font-serif); margin:.25rem 0 .5rem; }
+.route-intro p { margin-top:.45rem; }
+.route-kicker { color:var(--clr-stripe); font-size:.75rem; font-weight:700; letter-spacing:.1em; }
+.route-details { padding:1rem; border:1px solid #475271; border-top:0; border-radius:0 0 12px 12px; }
+.route-details summary { font-weight:700; cursor:pointer; color:var(--clr-text); }
+.route-stops { list-style:none; margin:.65rem 0 0; display:grid; gap:.4rem; }
+.route-stop { display:grid; grid-template-columns:minmax(0,1fr) auto; gap:.25rem 1rem; padding:.7rem .75rem; border-radius:8px; background:var(--clr-surface); }
+.route-stop[data-route-status="Current stop"] { border-left:4px solid var(--clr-stripe); }
+.route-stop[data-route-status="Next stop"] { border-left:4px solid #43c59e; }
+.route-stop h3 { font-size:1rem; line-height:1.3; overflow-wrap:anywhere; }
+.route-stop p { grid-column:1/-1; font-size:.85rem; color:#c5ccea; }
+.route-stop-status { font-size:.75rem; text-align:right; color:#f2d771; }
+@media(max-width:420px) { .route-stop { grid-template-columns:1fr; gap:.2rem; } .route-stop-status { text-align:left; } }

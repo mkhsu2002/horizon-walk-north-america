@@ -137,6 +137,20 @@
     </section>
   </main>
 
+  <section class="route-chapter" aria-labelledby="route-heading">
+    <div class="route-intro">
+      <p class="route-kicker">CHAPTER 01 · ILLINOIS</p>
+      <h2 id="route-heading">Chicago to the Mississippi</h2>
+      <p>Explore 13 stops along a curated virtual Route 66 journey. Not for real-world navigation.</p>
+      <p id="route-mode" class="route-kicker">DEMO WALK</p>
+      <p id="route-progress" role="status" aria-live="polite"></p>
+    </div>
+    <details class="route-details" open>
+      <summary>Explore all 13 stops</summary>
+      <ol id="route-stops" class="route-stops"></ol>
+    </details>
+  </section>
+
   <section class="passport" id="passport" aria-label="Route 66 Walking Passport">
     <h2>Walking Passport</h2>
     <p>Earn your first badge to preview a US Letter passport. Print it or use your browser to save as PDF.</p>
@@ -164,5 +178,6 @@
   <script type="module" src="demo.mjs"></script>
   <script type="module" src="manual.mjs"></script>
   <script type="module" src="passport-bridge.mjs"></script>
+  <script type="module" src="route-view.mjs"></script>
 </body>
 </html>

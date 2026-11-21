@@ -1,6 +1,6 @@
 # Illinois chapter
 
-The figures below are the curated virtual progress markers used by the current product plan. The preview implements IL00 and IL01 only. A distance in the table is not a walking route or official geographic measurement.
+The figures below are the curated virtual progress markers used by the current product plan. The preview shows all 13 markers and updates current and next stops. IL00 is the start and IL01 is the only collectible postcard in this version. A distance in the table is not a walking route or official geographic measurement.
 
 | Stop | Name | Total product metres |
 |---|---|---:|
