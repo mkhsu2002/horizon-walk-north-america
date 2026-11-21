@@ -378,3 +378,19 @@ button:disabled { opacity: 0.4; cursor: not-allowed; }
 #demo-shelf article, #manual-shelf article { min-width: 0; padding: 1rem; border: 1px solid currentColor; border-radius: .65rem; }
 #demo-shelf img, #manual-shelf img { height: auto; display: block; }
 #demo-shelf details, #manual-shelf details { font-size: .88rem; padding-block: .5rem; overflow-wrap: anywhere; }
+
+.passport-stamps { display:grid; grid-template-columns:repeat(auto-fit,minmax(min(100%,145px),1fr)); gap:.55rem; }
+.passport-stamps figure { margin:0; min-width:0; text-align:left; }
+.passport-stamps img { display:block; width:100%; height:6.75rem; max-height:none; object-fit:contain; background:#f4ecdb; }
+.passport-stamps figcaption { margin-top:.25rem; font-size:.84rem; font-weight:600; }
+.passport-stamps small { display:block; font-size:.72rem; font-weight:400; }
+@media print {
+  .passport-stamps { grid-template-columns:repeat(3,minmax(0,1fr)); gap:.09in .13in; }
+  .passport-stamps[data-count="2"] { grid-template-columns:repeat(2,minmax(0,1fr)); }
+  .passport-stamps img { height:1.10in; max-height:1.10in; }
+  .passport-stamps[data-count="1"] img, .passport-stamps[data-count="2"] img { height:2.1in; max-height:2.1in; }
+  .passport-stamps figure { break-inside:avoid; }
+  .passport-stamps figcaption { margin-top:.03in; font-size:9pt; line-height:1.15; }
+  .passport-stamps small { font-size:8pt; line-height:1.1; }
+  .passport-sheet h3 { margin:.08in 0; font-size:13pt; }
+}

@@ -1,3 +1,11 @@
+import { ILLINOIS_STOPS } from './route-catalog.mjs';
+import { POSTCARD_MEDIA } from './postcard-media.mjs';
+
+export function passportStamps(saved, legacyIL01Saved) {
+  const set=new Set(Array.isArray(saved)?saved:[]);
+  return ILLINOIS_STOPS.filter(s=>s.id==='IL01'?legacyIL01Saved===true:Object.hasOwn(POSTCARD_MEDIA,s.id)&&set.has(s.id));
+}
+
 export function initPassport(root) {
   const open    = root.querySelector('[data-passport-open]');
   const sheet   = root.querySelector('[data-passport-sheet]');
@@ -5,6 +13,8 @@ export function initPassport(root) {
   const distEl  = root.querySelector('[data-passport-distance]');
   const awardsEl= root.querySelector('[data-passport-awards]');
   const card    = root.querySelector('[data-passport-card]');
+  const stampList = root.querySelector('[data-passport-stamps]');
+  const stampTitle = root.querySelector('[data-passport-stamp-title]');
   const print   = root.querySelector('[data-passport-print]');
   const close   = root.querySelector('[data-passport-close]');
 
@@ -34,9 +44,36 @@ export function initPassport(root) {
     if (distEl)   distEl.textContent   = formatDistance(model.totalMm);
     if (awardsEl) awardsEl.textContent = awardLabels(model);
 
-    // Card (figure) visible only when postcard has been saved
-    if (card) {
-      card.hidden = !(model.il01 && model.postcardSaved);
+    const stamps = passportStamps(model.saved, model.il01 && model.postcardSaved);
+    card.hidden = !stamps.some(s=>s.id==='IL01');
+    stampTitle.textContent = 'Postcard stamps · ' + stamps.length + ' of 12';
+    stampList.dataset.count = String(stamps.length);
+    for (const figure of stampList.querySelectorAll('[data-stamp-id]')) figure.remove();
+    for (const {id,name} of stamps) {
+      if (id === 'IL01') continue;
+      const art = POSTCARD_MEDIA[id];
+      const figure = document.createElement('figure');
+      figure.dataset.stampId = id;
+      const img = document.createElement('img');
+      img.src=art.src; img.alt=art.alt; img.width=art.width; img.height=art.height;
+      const label=document.createElement('figcaption');
+      label.textContent=id+' · '+name;
+      const credit=document.createElement('small');
+      const isIllustration=art.kind.includes('illustration');
+      const author=isIllustration?'Horizon illustration':art.credit.split(',')[0];
+      if (!isIllustration && art.source?.startsWith('https://')) {
+        const original=document.createElement('a');
+        original.href=art.source; original.textContent=author; credit.append(original);
+      } else credit.append(author);
+      if (art.shareAlike) {
+        const license=document.createElement('a');
+        license.href=art.rightsUrl; license.textContent='CC BY-SA 2.0';
+        credit.append(' · ',license,' · WebP edition');
+      }
+      credit.title=art.credit;
+      label.append(credit);
+      figure.append(img,label);
+      stampList.append(figure);
     }
 
     // Print button visible only when sheet is in preview (sheet itself not hidden)

@@ -74,6 +74,7 @@ function renderShelf() {
   renderGallery(el('manual-shelf'), el('manual-shelf-status'), shelf, async id => {
     await store.updatePostcards(id);
     renderShelf();
+    window.dispatchEvent(new Event('route66:manual-shelf'));
   });
 }
 

@@ -1,6 +1,6 @@
 # Illinois chapter
 
-The figures below are the curated virtual progress markers used by the current product plan. The preview shows all 13 markers and updates current and next stops. IL00 is the start. IL01 through IL12 have postcards, and the current printable passport includes North Lawndale. A distance in the table is not a walking route or official geographic measurement.
+The figures below are the curated virtual progress markers used by the current product plan. The preview shows all 13 markers and updates current and next stops. IL00 is the start. IL01 through IL12 have postcards, and the printable passport includes whichever cards you've saved in the selected walk mode. A distance in the table is not a walking route or official geographic measurement.
 
 | Stop | Name | Total product metres |
 |---|---|---:|
