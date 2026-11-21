@@ -22,3 +22,7 @@ Open http://127.0.0.1:8080. For the passport, select **Print / Save PDF** and us
 [Product scope](docs/PRODUCT-SPEC.md) · [Illinois chapter plan](docs/ILLINOIS-STATION-PLAN.md) · [Kiro workflow](docs/KIRO-DEVELOPMENT.md) · [Media credits](docs/MEDIA-CREDITS.md)
 
 **Not yet in this preview:** offline PWA support, direct PDF export, or any Android health integration. This checkpoint is not the final submission.
+
+## License
+
+The original Route 66 implementation code and tests are [MIT-licensed](LICENSE). Photos, illustrations, editorial content, and brand assets are excluded; see the [license scope](LICENSE-SCOPE.md) and [media credits](docs/MEDIA-CREDITS.md). This license does not apply to the Taiwan app.
