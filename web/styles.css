@@ -368,3 +368,13 @@ button:disabled { opacity: 0.4; cursor: not-allowed; }
 .route-stop p { grid-column:1/-1; font-size:.85rem; color:#c5ccea; }
 .route-stop-status { font-size:.75rem; text-align:right; color:#f2d771; }
 @media(max-width:420px) { .route-stop { grid-template-columns:1fr; gap:.2rem; } .route-stop-status { text-align:left; } }
+
+#demo-shelf, #manual-shelf {
+  display: grid;
+  gap: 1rem;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 250px), 1fr));
+}
+#demo-shelf:not(:empty), #manual-shelf:not(:empty) { margin-top: 1.25rem; }
+#demo-shelf article, #manual-shelf article { min-width: 0; padding: 1rem; border: 1px solid currentColor; border-radius: .65rem; }
+#demo-shelf img, #manual-shelf img { height: auto; display: block; }
+#demo-shelf details, #manual-shelf details { font-size: .88rem; padding-block: .5rem; overflow-wrap: anywhere; }

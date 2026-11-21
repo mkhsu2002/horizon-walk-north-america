@@ -1,12 +1,15 @@
 import { challengeDate, createManualState, setManualDay, saveManualPostcard } from './manual-engine.mjs';
 
+import { createManualPostcards, MANUAL_SHELF_KEY } from './manual-postcards.mjs';
+import { renderGallery } from './postcard-gallery.mjs';
 import { MANUAL_STORAGE_KEY as NS, createManualStore } from './manual-store.mjs';
 const el = id => document.getElementById(id);
 const storage = {
   getItem: key => window.localStorage.getItem(key),
   setItem: (key, value) => window.localStorage.setItem(key, value),
 };
-const store = createManualStore({ storage, locks: navigator.locks });
+const postcards = createManualPostcards(storage);
+const store = createManualStore({ storage, locks: navigator.locks, postcards });
 let ledger = null;
 let formDirty = false;
 
@@ -33,7 +36,10 @@ function setMode(manual) {
   document.querySelector('.demo-banner').hidden = manual;
   el('mode-demo').setAttribute('aria-pressed', String(!manual));
   el('mode-manual').setAttribute('aria-pressed', String(manual));
-  if (manual) render();
+  if (manual) {
+    render();
+    if (ledger) store.updatePostcards().then(renderShelf).catch(shelfFailure);
+  }
 }
 el('mode-demo').addEventListener('click', () => setMode(false));
 el('mode-manual').addEventListener('click', () => setMode(true));
@@ -56,7 +62,21 @@ function render() {
   el('manual-image').hidden = !ledger.awards.il01;
   el('manual-postcard').disabled = !ledger.awards.il01 || ledger.postcardSent;
   el('manual-postcard').textContent = ledger.postcardSent ? 'Manual postcard saved' : 'Save Manual postcard';
+  renderShelf();
 }
+function shelfFailure() {
+  el('manual-shelf-status').textContent = 'The postcard collection could not be updated safely.';
+}
+function renderShelf() {
+  if (!ledger) return;
+  let shelf;
+  try { shelf = postcards.read(); } catch { shelfFailure(); return; }
+  renderGallery(el('manual-shelf'), el('manual-shelf-status'), shelf, async id => {
+    await store.updatePostcards(id);
+    renderShelf();
+  });
+}
+
 function announce(message) { el('manual-status').textContent = message; }
 function existingTotal() { el('manual-steps').value = ledger?.days[el('manual-date').value] ?? ''; }
 el('manual-start').addEventListener('click', async () => {
@@ -102,7 +122,7 @@ el('manual-postcard').addEventListener('click', async () => {
   } catch { announce(writeUnavailable); }
 });
 addEventListener('storage', event => {
-  if (event.key !== NS && event.key !== null) return;
+  if (event.key !== NS && event.key !== MANUAL_SHELF_KEY && event.key !== null) return;
   try { if (event.storageArea !== window.localStorage) return; }
   catch { return; }
   refresh();

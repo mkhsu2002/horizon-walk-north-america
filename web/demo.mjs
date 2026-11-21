@@ -11,38 +11,15 @@
  */
 
 import { createState, applyBatch } from './step-engine.mjs';
+import { renderGallery } from './postcard-gallery.mjs';
 
-// ── Storage helpers ───────────────────────────────────────────────────────────
+import { createDemoStore, DEMO_STORAGE_KEY, INITIAL_GENERATION, DemoResetConflict } from './demo-store.mjs';
 
-const NS = 'horizon.route66.demo.v1';
-
-function saveToStorage(state, postcardSaved) {
-  try {
-    const payload = {
-      totalMm:      state.totalMm,
-      seenIds:      [...state.seenIds],
-      awarded:      [...state.awarded],
-      postcardSaved,
-    };
-    localStorage.setItem(NS, JSON.stringify(payload));
-  } catch (_) { /* storage unavailable — silent */ }
-}
-
-function loadFromStorage() {
-  try {
-    const raw = localStorage.getItem(NS);
-    if (!raw) return null;
-    const payload = JSON.parse(raw);
-    return {
-      state: {
-        totalMm: Number.isSafeInteger(payload.totalMm) && payload.totalMm >= 0 && payload.totalMm % 700 === 0 ? payload.totalMm : 0,
-        seenIds: new Set(Array.isArray(payload.seenIds) ? payload.seenIds : []),
-        awarded: new Set(Array.isArray(payload.awarded)  ? payload.awarded  : []),
-      },
-      postcardSaved: Boolean(payload.postcardSaved),
-    };
-  } catch (_) { return null; }
-}
+const store = createDemoStore({
+  storage: {getItem:key=>localStorage.getItem(key), setItem:(key,value)=>localStorage.setItem(key,value)},
+  locks: navigator.locks, newGeneration: () => crypto.randomUUID(),
+});
+let generation = INITIAL_GENERATION;
 
 // ── Constants ─────────────────────────────────────────────────────────────────
 
@@ -102,6 +79,10 @@ function render(state, newAwards = []) {
     btnTopup.disabled            = true;
     btnTopup.textContent         = 'IL01 reached ✓';
     btnTopup.setAttribute('aria-disabled', 'true');
+  } else {
+    btnTopup.disabled = false;
+    btnTopup.textContent = 'Top-up to IL01 (25,290 steps)';
+    btnTopup.removeAttribute('aria-disabled');
   }
 
   // Badges
@@ -123,6 +104,10 @@ function render(state, newAwards = []) {
       el.classList.remove('badge--locked');
       el.classList.add('badge--unlocked');
       statusEl.textContent = 'unlocked';
+    } else {
+      el.classList.remove('badge--unlocked', 'badge--new-unlock');
+      el.classList.add('badge--locked');
+      statusEl.textContent = 'locked';
     }
   }
 
@@ -135,9 +120,13 @@ function render(state, newAwards = []) {
       ? 'Postcard saved locally.'
       : 'Your postcard is ready!';
     btnSavePostcard.disabled = postcardSaved;
-    if (postcardSaved) {
-      btnSavePostcard.textContent = 'Postcard saved ✓';
-    }
+    btnSavePostcard.textContent = postcardSaved ? 'Postcard saved ✓' : 'Save postcard';
+  } else {
+    postcard.classList.add('postcard--hidden');
+    postcard.setAttribute('aria-hidden','true');
+    postcardHint.textContent = 'Reach IL01 to unlock your postcard.';
+    btnSavePostcard.disabled = true;
+    btnSavePostcard.textContent = 'Save postcard';
   }
 
   // Announce new awards
@@ -147,84 +136,65 @@ function render(state, newAwards = []) {
   }
 }
 
-// ── Batch dispatch ────────────────────────────────────────────────────────────
-
-function dispatch(steps) {
-  if (steps <= 0) return;
-  const batchId = crypto.randomUUID();
-  const { state: nextState, newAwards } = applyBatch(appState, { id: batchId, steps });
-  appState = nextState;
-  saveToStorage(appState, postcardSaved);
-  render(appState, newAwards);
+// Keep the flat v1 ledger contract; only the generation field is new.
+function show(next, awards = []) {
+  generation=next.generation;
+  appState=next.state;
+  postcardSaved=next.postcardSaved;
+  render(appState, awards);
+  const shelfStatus=document.getElementById('demo-shelf-status');
+  const viewedGeneration=next.generation;
+  renderGallery(document.getElementById('demo-shelf'),shelfStatus,next.shelf,
+    async id=>show(await store.save(viewedGeneration,id)));
+  window.dispatchEvent(new Event('route66:demo-ledger'));
 }
-
-// ── Postcard save ─────────────────────────────────────────────────────────────
-
-function savePostcard() {
-  if (postcardSaved) return;
-  postcardSaved = true;
-  saveToStorage(appState, postcardSaved);
-
-  render(appState, []);
-  announce('Postcard saved in this browser.');
+function readLatest() {
+  try { show(store.read()); } catch { announce('Saved Demo progress could not be read.'); }
 }
-
-// ── Wiring ────────────────────────────────────────────────────────────────────
-
-document.getElementById('btn-6k').addEventListener('click', () => {
-  dispatch(6_000);
+async function dispatch(steps, topup = false) {
+  const batchId=crypto.randomUUID();
+  let awards=[];
+  try {
+    const next=await store.transact(generation, current=>{
+      const count=topup ? Math.max(0, IL01_STEPS-totalSteps(current.state)) : steps;
+      if (!count) return current;
+      const result=applyBatch(current.state,{id:batchId,steps:count});
+      awards=result.newAwards;
+      return result.state===current.state ? current : {...current,state:result.state};
+    });
+    show(next,awards);
+  } catch(error) { failed(error); }
+}
+function failed(error) {
+  if(error instanceof DemoResetConflict) {
+    readLatest();
+    announce('Demo was reset in another tab. This action was not applied.');
+  } else announce('Demo progress could not be saved safely.');
+}
+document.getElementById('btn-6k').addEventListener('click',()=>dispatch(6_000));
+document.getElementById('btn-12k').addEventListener('click',()=>dispatch(12_000));
+btnTopup.addEventListener('click',()=>dispatch(0,true));
+btnSavePostcard.addEventListener('click',async()=>{
+  try {
+    const next=await store.transact(generation,current=>{
+      if(current.postcardSaved || !current.state.awarded.has(IL01_MM)) return current;
+      return {...current,postcardSaved:true};
+    });
+    show(next);
+    if(next.postcardSaved) announce('Postcard saved in this browser.');
+  } catch(error) { failed(error); }
 });
-
-document.getElementById('btn-12k').addEventListener('click', () => {
-  dispatch(12_000);
+document.getElementById('btn-reset').addEventListener('click',async()=>{
+  const observed=generation;
+  if(!window.confirm('Reset all Demo progress? This cannot be undone.')) return;
+  try { show(await store.reset(observed)); announce('Progress reset.'); }
+  catch(error) { failed(error); }
 });
-
-btnTopup.addEventListener('click', () => {
-  const current = totalSteps(appState);
-  if (current >= IL01_STEPS) return; // no-op guard
-  const needed = IL01_STEPS - current;
-  dispatch(needed);
+addEventListener('storage',event=>{
+  if(event.key!==DEMO_STORAGE_KEY && event.key!==null) return;
+  try { if(event.storageArea!==localStorage) return; } catch {return;}
+  readLatest();
 });
+readLatest();
 
-btnSavePostcard.addEventListener('click', () => {
-  savePostcard();
-});
-
-document.getElementById('btn-reset').addEventListener('click', () => {
-  if (!window.confirm('Reset all progress? This cannot be undone.')) return;
-  try { localStorage.removeItem(NS); } catch (_) {}
-  appState      = createState();
-  postcardSaved = false;
-
-  // Re-lock badges in DOM
-  for (const meta of Object.values(BADGE_META)) {
-    const el = document.getElementById(meta.id);
-    el.classList.remove('badge--unlocked', 'badge--new-unlock');
-    el.classList.add('badge--locked');
-    el.querySelector('.badge-status').textContent = 'locked';
-  }
-
-  // Re-hide postcard
-  postcard.classList.add('postcard--hidden');
-  postcard.setAttribute('aria-hidden', 'true');
-  postcardHint.textContent = 'Reach IL01 to unlock your postcard.';
-  btnSavePostcard.disabled     = true;
-  btnSavePostcard.textContent  = 'Save postcard';
-  btnTopup.disabled            = false;
-  btnTopup.textContent         = 'Top-up to IL01 (25,290 steps)';
-  btnTopup.removeAttribute('aria-disabled');
-
-  render(appState, []);
-  announce('Progress reset.');
-});
-
-// ── Boot: restore from localStorage ──────────────────────────────────────────
-
-(function boot() {
-  const saved = loadFromStorage();
-  if (saved) {
-    appState      = saved.state;
-    postcardSaved = saved.postcardSaved;
-  }
-  render(appState, []);
-})();
+store.initialize().then(readLatest).catch(() => announce('Demo progress could not be initialized safely.'));

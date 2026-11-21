@@ -7,3 +7,5 @@ Independent checkpoint validation ran 62 Node tests and manually exercised Demo,
 For the Illinois catalogue checkpoint, Kiro drafted the route data and its tests. The resulting route calculation was checked with integer millimetre boundaries across all 13 markers. The developer connected the catalogue to the existing Demo and Manual state without changing either storage format.
 
 For the Manual Walk persistence checkpoint, Kiro drafted the storage abstraction and tests. The developer corrected the draft for the shipped v1 ledger and integrated the UI. Node tests exercised concurrent writes and unavailable storage; two Chrome tabs verified that separate dates and a saved postcard were retained and that an unsaved edit was not replaced.
+
+For the Illinois postcard collection, Kiro drafted the first isolated award/shelf module and tests. The developer corrected and verified that module against the established route catalogue, implemented the browser galleries and their storage integration, and validated the Demo reset migration. Independent release checks exercised both modes and legacy progress in two browser tabs; they did not verify direct PDF output.

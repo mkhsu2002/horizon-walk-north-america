@@ -32,7 +32,7 @@ function validate(state) {
   return state;
 }
 
-export function createManualStore({ storage, locks }) {
+export function createManualStore({ storage, locks, postcards }) {
   function read() {
     const raw = storage.getItem(MANUAL_STORAGE_KEY);
     if (raw === null) return null;
@@ -45,12 +45,18 @@ export function createManualStore({ storage, locks }) {
     if (typeof locks?.request !== 'function') throw new Error('Safe Manual writes require Web Locks');
     return locks.request(MANUAL_STORAGE_KEY, { mode: 'exclusive' }, () => {
       const current = read();
+      if (postcards) { try { postcards.sync(current); } catch {} }
       const next = mutator(current);
       if (next === current) return current;
       validate(next);
       storage.setItem(MANUAL_STORAGE_KEY, JSON.stringify({ version: 1, state: next }));
+      if (postcards) { try { postcards.sync(next); } catch {} }
       return next;
     });
   }
-  return { read, transact };
+  async function updatePostcards(id) {
+    if (typeof locks?.request !== 'function' || !postcards) throw new Error('Safe postcard writes are unavailable');
+    return locks.request(MANUAL_STORAGE_KEY, { mode: 'exclusive' }, () => postcards.sync(read(), id));
+  }
+  return { read, transact, updatePostcards };
 }

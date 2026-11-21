@@ -1,3 +1,5 @@
+import { POSTCARD_MEDIA } from './postcard-media.mjs';
+import { readDemoAuthority, DEMO_STORAGE_KEY } from './demo-store.mjs';
 import { ILLINOIS_STOPS, routeProgress } from './route-catalog.mjs';
 
 let mode = 'Demo';
@@ -22,17 +24,16 @@ for (const stop of ILLINOIS_STOPS) {
   const story = document.createElement('p');
   story.textContent = stop.teaser;
   const extra = document.createElement('p');
-  extra.textContent = distanceLabel(stop.meters * 1000) + ' from Chicago · ' + (stop.id === 'IL00'
-    ? 'Chapter start' : stop.id === 'IL01' ? 'Collectible postcard' : 'Collectible coming later');
   row.append(title, tag, story, extra);
   stopsList.append(row);
-  cards.set(stop.id, { row, tag });
+  cards.set(stop.id, { row, tag, extra });
 }
 
 function totalDistance() {
   try {
-    const raw = JSON.parse(localStorage.getItem('horizon.route66.' + mode.toLowerCase() + '.v1'));
-    const mm = (mode === 'Demo' ? raw?.totalMm : raw?.state?.totalMm) ?? 0;
+    if (mode === 'Demo') return readDemoAuthority(localStorage).state.totalMm;
+    const raw = JSON.parse(localStorage.getItem('horizon.route66.manual.v1'));
+    const mm = raw?.state?.totalMm ?? 0;
     return Number.isSafeInteger(mm) && mm >= 0 ? mm : 0;
   } catch { return 0; }
 }
@@ -45,10 +46,13 @@ function update(nextMode = mode) {
     ? 'Latest stop: ' + progress.current.name + ' · Next: ' + progress.next.name + ' in ' + remainingLabel(progress.remainingToNextMm)
     : 'Illinois chapter complete · ' + progress.current.name;
   for (const stop of ILLINOIS_STOPS) {
-    const { row, tag } = cards.get(stop.id);
+    const { row, tag, extra } = cards.get(stop.id);
     const status = stop.id === progress.current?.id ? 'Current stop'
       : stop.id === progress.next?.id ? 'Next stop'
       : stop.meters * 1000 <= mm ? 'Reached' : 'Upcoming';
+    const collectible = stop.id === 'IL01' || Object.hasOwn(POSTCARD_MEDIA,stop.id);
+    extra.textContent = distanceLabel(stop.meters * 1000) + ' from Chicago · ' + (stop.id === 'IL00'
+      ? 'Chapter start' : collectible ? 'Postcard in ' + mode + ' Walk' : 'Route milestone');
     row.dataset.routeStatus = status;
     if (tag.textContent !== status) tag.textContent = status;
     if (status === 'Current stop') row.setAttribute('aria-current','step');
@@ -61,6 +65,8 @@ byId('demo-panel').addEventListener('click', () => queueMicrotask(() => update()
 byId('manual-form').addEventListener('submit', () => queueMicrotask(() => update()));
 addEventListener('route66:manual-ledger', () => { if (mode === 'Manual') update(); });
 addEventListener('storage', e => {
-  if (e.key === null || e.key === 'horizon.route66.' + mode.toLowerCase() + '.v1') update();
+  if (e.key === null || e.key === (mode === 'Demo' ? DEMO_STORAGE_KEY : 'horizon.route66.manual.v1')) update();
 });
 update();
+
+addEventListener('route66:demo-ledger', () => { if (mode === 'Demo') update(); });
