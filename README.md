@@ -2,10 +2,21 @@
 
 **Route 66 Challenge · Kiroween 2026 · Frankenstein**
 
-Walk where you live and make progress across a virtual Route 66, from Chicago to Santa Monica. As you reach milestones, unlock original stories and postcards, then turn the places you have earned into a printable travel passport.
+Walk anywhere. Challenge yourself. Discover Route 66. The project combines a virtual walking challenge with postcards and a paper travel passport that reflects earned progress.
 
-This new English-language project combines everyday walking with a physical travel souvenir. The first playable chapter is planned for Illinois; the rest of the historic route is the long-term challenge. This is a virtual experience, not real-world navigation or a recommendation to walk along the highway.
+## First playable preview
 
-[Product specification](docs/PRODUCT-SPEC.md) · [Kiroween rules](https://kiroween.devpost.com/rules)
+The current English-language preview spans Chicago to the first virtual stop, North Lawndale. Take a labelled Demo Walk with simulated steps, or record daily totals in a separate Manual Walk. The preview awards two challenge badges, lets you save the first postcard and unlocks a printable passport after the first badge. It does not read phone sensors, ask for login, or upload steps. It is not navigation or a record of an in-person visit.
 
-**Status:** planning only. No app, download or live demo is available yet.
+Run locally from the repository root:
+
+```sh
+python3 -m http.server 8080 --bind 127.0.0.1 --directory web
+node --test tests/*.test.mjs
+```
+
+Open http://127.0.0.1:8080. For the passport, select **Print / Save PDF** and use your browser's print dialog. It targets US Letter portrait. When deploying to Cloudflare Pages with Git integration, use no framework preset and output directory `web`; no application build step is needed for this preview.
+
+[Product scope](docs/PRODUCT-SPEC.md) · [Illinois chapter plan](docs/ILLINOIS-STATION-PLAN.md) · [Kiro workflow](docs/KIRO-DEVELOPMENT.md) · [Media credits](docs/MEDIA-CREDITS.md)
+
+**Not yet in this preview:** the remaining Illinois postcards, offline PWA support, direct PDF export or any Android health integration. This checkpoint is not the final submission.

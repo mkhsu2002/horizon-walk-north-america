@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Horizon Walk the World — Route 66</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <header>
+    <div class="demo-banner" role="note" aria-label="Simulated demo notice">
+      ⚠ SIMULATED DEMO — steps and awards are not connected to any real account
+    </div>
+    <h1>Horizon Walk the World</h1>
+    <p class="subtitle">Route 66 · Illinois</p>
+  </header>
+
+  <nav class="mode-switch" aria-label="Walking mode">
+    <button class="btn-secondary" type="button" id="mode-demo" aria-pressed="true" aria-controls="demo-panel">Demo Walk</button>
+    <button class="btn-secondary" type="button" id="mode-manual" aria-pressed="false" aria-controls="manual-panel">Manual Walk</button>
+  </nav>
+  <main id="demo-panel">
+    <section class="stats" aria-label="Current progress">
+      <div class="stat-card">
+        <span class="stat-label">Cumulative Steps</span>
+        <span class="stat-value" id="display-steps">0</span>
+      </div>
+      <div class="stat-card">
+        <span class="stat-label">Distance</span>
+        <span class="stat-value" id="display-mm">0 mm</span>
+      </div>
+      <div class="stat-card">
+        <span class="stat-label">Kilometres</span>
+        <span class="stat-value" id="display-km">0.000 km</span>
+      </div>
+    </section>
+
+    <section class="actions" aria-label="Add steps">
+      <h2>Add Steps</h2>
+      <div class="button-row">
+        <button id="btn-6k"  class="btn-primary">Add 6,000 steps</button>
+        <button id="btn-12k" class="btn-primary">Add 12,000 steps</button>
+        <button id="btn-topup" class="btn-secondary">
+          Top-up to IL01 (25,290 steps)
+        </button>
+      </div>
+    </section>
+
+    <section class="badges" aria-label="Earned badges">
+      <h2>Badges</h2>
+      <ul id="badge-list" class="badge-list" aria-live="polite" aria-atomic="false">
+        <li class="badge badge--locked" id="badge-4200">
+          <span class="badge-icon" aria-hidden="true">🥾</span>
+          <span class="badge-name">First Steps</span>
+          <span class="badge-desc">4.2 km walked</span>
+          <span class="badge-status">locked</span>
+        </li>
+        <li class="badge badge--locked" id="badge-12600">
+          <span class="badge-icon" aria-hidden="true">🛤️</span>
+          <span class="badge-name">Route Wanderer</span>
+          <span class="badge-desc">12.6 km walked</span>
+          <span class="badge-status">locked</span>
+        </li>
+        <li class="badge badge--locked" id="badge-il01">
+          <span class="badge-icon" aria-hidden="true">📍</span>
+          <span class="badge-name">IL01 — North Lawndale</span>
+          <span class="badge-desc">17.703 km · First Illinois stop</span>
+          <span class="badge-status">locked</span>
+        </li>
+      </ul>
+    </section>
+
+    <section class="postcard-section" aria-label="Postcard">
+      <h2>Postcard</h2>
+      <div id="postcard-area">
+        <p class="postcard-hint" id="postcard-hint">
+          Reach IL01 to unlock your postcard.
+        </p>
+        <div id="postcard" class="postcard postcard--hidden" aria-hidden="true">
+          <figure class="postcard-art">
+            <img src="il01-illustration.png" alt="Illustration of North Lawndale along Route 66" loading="lazy" />
+            <figcaption>North Lawndale · Illustration</figcaption>
+          </figure>
+          <div class="postcard-inner">
+            <h3 class="postcard-title">Greetings from Route 66!</h3>
+            <p class="postcard-body">
+              You've reached <strong>IL01 — North Lawndale</strong>, kilometre 17.703
+              on the greatest American road. The open highway stretches ahead.
+              Keep walking.
+            </p>
+            <p class="postcard-stamp">🗺 Horizon Walk the World · Route 66 Demo</p>
+          </div>
+        </div>
+        <button id="btn-save-postcard" class="btn-secondary postcard-save-btn" disabled>
+          Save postcard
+        </button>
+      </div>
+    </section>
+
+    <section class="danger-zone" aria-label="Reset">
+      <button id="btn-reset" class="btn-danger">Reset all progress</button>
+    </section>
+  </main>
+
+  <main id="manual-panel" hidden>
+    <section aria-labelledby="manual-heading">
+      <h2 id="manual-heading">Manual Walk</h2>
+      <p>Log your own daily step totals. Your Demo progress and rewards stay separate.</p>
+      <p id="manual-zone"></p>
+      <button type="button" id="manual-start" class="btn-primary">Start Manual Walk</button>
+      <form id="manual-form" hidden novalidate>
+        <label for="manual-date">Challenge day</label>
+        <input id="manual-date" name="date" type="date" required />
+        <label for="manual-steps">Steps for this day</label>
+        <input id="manual-steps" name="steps" type="text" inputmode="numeric" required aria-describedby="manual-guide" />
+        <p id="manual-guide">Enter a whole number from 0 to 100,000. Saving the same day replaces its previous total.</p>
+        <button type="submit" class="btn-primary">Save daily total</button>
+      </form>
+      <p id="manual-status" role="status" aria-live="polite"></p>
+    </section>
+    <section class="stats" aria-label="Manual progress">
+      <div class="stat-card"><span class="stat-label">Total steps</span><span class="stat-value" id="manual-total">0</span></div>
+      <div class="stat-card"><span class="stat-label">Distance</span><span class="stat-value" id="manual-distance">0.000 km</span></div>
+    </section>
+    <section aria-label="Manual collection">
+      <h2>Manual Collection</h2>
+      <ul class="manual-collection">
+        <li>First Steps · 4.2 km <strong id="manual-badge-one">Locked</strong></li>
+        <li>Route Wanderer · 12.6 km <strong id="manual-badge-two">Locked</strong></li>
+        <li>North Lawndale · 17.703 km <strong id="manual-badge-stop">Locked</strong></li>
+      </ul>
+      <figure class="postcard-art" id="manual-image" hidden>
+        <img src="il01-illustration.png" alt="Illustration of North Lawndale along Route 66" loading="lazy" />
+        <figcaption>North Lawndale · Illustration</figcaption>
+      </figure>
+      <button type="button" id="manual-postcard" class="btn-secondary" disabled>Save Manual postcard</button>
+    </section>
+  </main>
+
+  <section class="passport" id="passport" aria-label="Route 66 Walking Passport">
+    <h2>Walking Passport</h2>
+    <p>Earn your first badge to preview a US Letter passport. Print it or use your browser to save as PDF.</p>
+    <button type="button" class="btn-secondary" data-passport-open disabled>Preview passport</button>
+    <section class="passport-sheet" data-passport-sheet hidden aria-label="Passport preview">
+      <p class="passport-eyebrow">HORIZON OUTDOOR · WALK THE WORLD</p>
+      <h2>Route 66 Walking Passport</h2>
+      <p data-passport-mode></p>
+      <p data-passport-distance></p>
+      <p data-passport-awards></p>
+      <figure class="passport-art" data-passport-card hidden>
+        <img src="il01-illustration.png" alt="Illustration of North Lawndale along Route 66" />
+        <figcaption>IL01 · North Lawndale · Illustration</figcaption>
+      </figure>
+      <p class="passport-footer">Illinois · Route 66 · Horizon Outdoor</p>
+      <div class="passport-actions">
+        <button type="button" class="btn-primary" data-passport-print>Print / Save as PDF</button>
+        <button type="button" class="btn-secondary" data-passport-close>Close preview</button>
+      </div>
+    </section>
+  </section>
+
+  <div id="live-announcer" class="sr-only" aria-live="assertive" aria-atomic="true"></div>
+
+  <script type="module" src="demo.mjs"></script>
+  <script type="module" src="manual.mjs"></script>
+  <script type="module" src="passport-bridge.mjs"></script>
+</body>
+</html>
