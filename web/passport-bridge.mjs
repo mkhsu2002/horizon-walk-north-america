@@ -19,5 +19,6 @@ document.getElementById('mode-manual').addEventListener('click',() => refresh('M
 document.getElementById('demo-panel').addEventListener('click',() => queueMicrotask(() => refresh()));
 document.getElementById('manual-panel').addEventListener('click',() => queueMicrotask(() => refresh()));
 document.getElementById('manual-form').addEventListener('submit',() => queueMicrotask(() => refresh()));
+addEventListener('route66:manual-ledger', () => { if (mode === 'Manual') refresh(); });
 addEventListener('storage',() => refresh());
 refresh();

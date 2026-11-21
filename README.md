@@ -8,6 +8,8 @@ Walk anywhere. Challenge yourself. Discover Route 66. The project combines a vir
 
 [Open the Route 66 preview](https://walk.horizonoutdoor.ca/). The English-language preview shows all 13 Illinois stops and the remaining walking distance to the next one. North Lawndale is the only collectible postcard in this release. Take a labelled Demo Walk with simulated steps, or record daily totals in a separate Manual Walk. The preview awards two challenge badges, lets you save the first postcard and unlocks a printable passport after the first badge. It does not read phone sensors, ask for login, or upload steps. It is not navigation or a record of an in-person visit.
 
+Manual progress is stored in this browser. Use a current browser on the same site address, and reload any tabs left open from an older preview before recording new steps.
+
 Run locally from the repository root:
 
 ```sh

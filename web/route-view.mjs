@@ -59,6 +59,7 @@ byId('mode-demo').addEventListener('click', () => update('Demo'));
 byId('mode-manual').addEventListener('click', () => update('Manual'));
 byId('demo-panel').addEventListener('click', () => queueMicrotask(() => update()));
 byId('manual-form').addEventListener('submit', () => queueMicrotask(() => update()));
+addEventListener('route66:manual-ledger', () => { if (mode === 'Manual') update(); });
 addEventListener('storage', e => {
   if (e.key === null || e.key === 'horizon.route66.' + mode.toLowerCase() + '.v1') update();
 });

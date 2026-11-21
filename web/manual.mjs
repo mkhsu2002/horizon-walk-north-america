@@ -1,17 +1,32 @@
 import { challengeDate, createManualState, setManualDay, saveManualPostcard } from './manual-engine.mjs';
 
-const NS = 'horizon.route66.manual.v1';
+import { MANUAL_STORAGE_KEY as NS, createManualStore } from './manual-store.mjs';
 const el = id => document.getElementById(id);
+const storage = {
+  getItem: key => window.localStorage.getItem(key),
+  setItem: (key, value) => window.localStorage.setItem(key, value),
+};
+const store = createManualStore({ storage, locks: navigator.locks });
 let ledger = null;
-try {
-  const stored = JSON.parse(localStorage.getItem(NS));
-  if (stored?.version === 1 && stored.state?.activatedOn && stored.state?.zone) ledger = stored.state;
-} catch { /* no saved challenge */ }
+let formDirty = false;
 
-function store(next) {
-  localStorage.setItem(NS, JSON.stringify({ version: 1, state: next }));
-  ledger = next;
+function refresh() {
+  try {
+    const latest = store.read();
+    // A clearing/removal event is not a valid replacement for already loaded progress.
+    if (latest) ledger = latest;
+    render();
+    if (!formDirty) existingTotal();
+  } catch {
+    announce('Saved Manual progress could not be read. Your entries were not replaced.');
+  }
 }
+function didCommit(next) {
+  ledger = next;
+  render();
+  window.dispatchEvent(new Event('route66:manual-ledger'));
+}
+const writeUnavailable = 'Manual progress could not be saved safely. Your existing progress was not replaced.';
 function setMode(manual) {
   el('demo-panel').hidden = manual;
   el('manual-panel').hidden = !manual;
@@ -44,33 +59,52 @@ function render() {
 }
 function announce(message) { el('manual-status').textContent = message; }
 function existingTotal() { el('manual-steps').value = ledger?.days[el('manual-date').value] ?? ''; }
-el('manual-start').addEventListener('click', () => {
+el('manual-start').addEventListener('click', async () => {
   try {
-    store(createManualState(Date.now(), Intl.DateTimeFormat().resolvedOptions().timeZone || 'UTC'));
-    render();
+    const next = await store.transact(current => current
+      ?? createManualState(Date.now(), Intl.DateTimeFormat().resolvedOptions().timeZone || 'UTC'));
+    didCommit(next);
     el('manual-steps').focus();
     announce('Manual Walk started. Your challenge time zone is fixed.');
-  } catch { announce('This browser could not save your new challenge.'); }
+  } catch { announce(writeUnavailable); }
 });
-el('manual-date').addEventListener('change', existingTotal);
-el('manual-form').addEventListener('submit', event => {
+el('manual-steps').addEventListener('input', () => { formDirty = true; });
+el('manual-date').addEventListener('change', () => { formDirty = false; existingTotal(); });
+el('manual-form').addEventListener('submit', async event => {
   event.preventDefault();
   const value = el('manual-steps').value.trim();
   if (!/^\d+$/.test(value)) { announce('Enter a whole number from 0 to 100,000.'); return; }
   const date = el('manual-date').value;
-  let next;
-  try { next = setManualDay(ledger, date, Number(value), Date.now()); }
-  catch (error) { announce(error.message); return; }
-  const earned = Object.keys(next.awards).filter(key => next.awards[key] && !ledger.awards[key]).length;
-  try { store(next); }
-  catch { announce('This browser could not save your step total.'); return; }
-  render();
-  announce('Daily total saved.' + (earned ? ' New rewards in your collection: ' + earned + '.' : ''));
+  const fieldValue = el('manual-steps').value;
+  let earned = 0, inputError = null;
+  try {
+    const next = await store.transact(current => {
+      if (!current) throw new Error('Manual challenge is not available');
+      let candidate;
+      try { candidate = setManualDay(current, date, Number(value), Date.now()); }
+      catch (error) { inputError = error; throw error; }
+      earned = Object.keys(candidate.awards).filter(key => candidate.awards[key] && !current.awards[key]).length;
+      return candidate;
+    });
+    didCommit(next);
+    if (el('manual-date').value === date && el('manual-steps').value === fieldValue) formDirty = false;
+    announce('Daily total saved.' + (earned ? ' New rewards in your collection: ' + earned + '.' : ''));
+  } catch { announce(inputError?.message ?? writeUnavailable); }
 });
-el('manual-postcard').addEventListener('click', () => {
-  try { store(saveManualPostcard(ledger)); }
-  catch { announce('This browser could not save your postcard.'); return; }
-  render();
-  announce('Postcard saved in your Manual collection.');
+el('manual-postcard').addEventListener('click', async () => {
+  try {
+    const next = await store.transact(current => {
+      if (!current) throw new Error('Manual challenge is not available');
+      return saveManualPostcard(current);
+    });
+    didCommit(next);
+    announce('Postcard saved in your Manual collection.');
+  } catch { announce(writeUnavailable); }
 });
-render();
+addEventListener('storage', event => {
+  if (event.key !== NS && event.key !== null) return;
+  try { if (event.storageArea !== window.localStorage) return; }
+  catch { return; }
+  refresh();
+});
+refresh();
