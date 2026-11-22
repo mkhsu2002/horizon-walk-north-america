@@ -486,3 +486,10 @@ button:disabled { opacity: 0.4; cursor: not-allowed; }
   #btn-save-postcard:not(:disabled) { background:#8b3021; color:#fffaf0; border-color:#8b3021; }
   #btn-save-postcard:not(:disabled):hover { background:#702719; }
 }
+
+@media screen {
+  .btn-secondary:not(:disabled) { background:#fffaf0; }
+  .mode-switch .btn-secondary:not(:disabled) { background:transparent; }
+  .mode-switch .btn-secondary[aria-pressed="true"]:not(:disabled) { background:#272823; }
+  #manual-form input { color-scheme:light; }
+}
