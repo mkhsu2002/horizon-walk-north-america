@@ -180,6 +180,11 @@
       <p id="manual-zone"></p>
       <button type="button" id="manual-start" class="btn-primary">Start Manual Walk</button>
       <form id="manual-form" hidden novalidate>
+        <div id="manual-today-choice" hidden>
+          <p id="manual-today-draft-note" role="status"></p>
+          <button id="manual-keep-draft" type="button" class="btn-secondary" aria-describedby="manual-today-draft-note">Keep editing this day</button>
+          <button id="manual-discard-draft" type="button" class="btn-secondary">Discard draft and log today</button>
+        </div>
         <label for="manual-date">Challenge day</label>
         <input id="manual-date" name="date" type="date" required />
         <label for="manual-steps">Steps for this day</label>

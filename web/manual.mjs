@@ -48,9 +48,11 @@ function refresh() {
     renderReturnWalk(latest);
     render();
     if (!formDirty) existingTotal();
+    return latest;
   } catch {
     renderReturnWalk(null);
     announce('Saved Manual progress could not be read. Your entries were not replaced.');
+    return undefined;
   }
 }
 function didCommit(next) {
@@ -74,10 +76,44 @@ function setMode(manual) {
 el('mode-demo').addEventListener('click', () => setMode(false));
 el('mode-manual').addEventListener('click', () => setMode(true));
 
+function openToday(discardDraft = false) {
+  const latest = refresh();
+  if (latest === undefined) return;
+  if (!latest) {
+    if (ledger) announce('Saved Manual progress is unavailable. Your entries were not replaced.');
+    else el('manual-start').focus();
+    return;
+  }
+  const date = el('manual-date');
+  const today = challengeDate(Date.now(), latest.zone);
+  const choice = el('manual-today-choice');
+  if (formDirty && date.value !== today && !discardDraft) {
+    el('manual-today-draft-note').textContent =
+      'You have unsaved steps for ' + (date.value || 'the selected day') +
+      '. Keep editing to save that entry, or discard the draft to log ' + today + '.';
+    choice.hidden = false;
+    el('manual-keep-draft').focus();
+    return;
+  }
+  choice.hidden = true;
+  if (!formDirty || discardDraft) {
+    date.max = today;
+    date.value = today;
+    formDirty = false;
+    existingTotal();
+  }
+  announce('');
+  el('manual-steps').focus();
+}
 el('hero-manual').addEventListener('click', () => {
   el('mode-manual').click();
-  (ledger ? el('manual-steps') : el('manual-start')).focus();
+  openToday();
 });
+el('manual-keep-draft').addEventListener('click', () => {
+  el('manual-today-choice').hidden = true;
+  el('manual-steps').focus();
+});
+el('manual-discard-draft').addEventListener('click', () => openToday(true));
 const stepLabel = n => n.toLocaleString('en-US') + (n === 1 ? ' step' : ' steps');
 
 function render() {
@@ -136,7 +172,11 @@ el('manual-start').addEventListener('click', async () => {
   } catch { announce(writeUnavailable); }
 });
 el('manual-steps').addEventListener('input', () => { formDirty = true; });
-el('manual-date').addEventListener('change', () => { formDirty = false; existingTotal(); });
+el('manual-date').addEventListener('change', () => {
+  el('manual-today-choice').hidden = true;
+  formDirty = false;
+  existingTotal();
+});
 el('manual-form').addEventListener('submit', async event => {
   event.preventDefault();
   const value = el('manual-steps').value.trim();
@@ -154,8 +194,11 @@ el('manual-form').addEventListener('submit', async event => {
       return candidate;
     });
     didCommit(next);
-    if (el('manual-date').value === date && el('manual-steps').value === fieldValue) formDirty = false;
-    announce('Daily total saved.' + (earned ? ' New rewards in your collection: ' + earned + '.' : ''));
+    if (el('manual-date').value === date && el('manual-steps').value === fieldValue) {
+      formDirty = false;
+      el('manual-today-choice').hidden = true;
+    }
+    announce('Daily total saved for ' + date + '.' + (earned ? ' New rewards in your collection: ' + earned + '.' : ''));
   } catch { announce(inputError?.message ?? writeUnavailable); }
 });
 el('manual-postcard').addEventListener('click', async () => {
