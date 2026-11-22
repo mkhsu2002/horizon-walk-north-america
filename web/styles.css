@@ -493,3 +493,30 @@ button:disabled { opacity: 0.4; cursor: not-allowed; }
   .mode-switch .btn-secondary[aria-pressed="true"]:not(:disabled) { background:#272823; }
   #manual-form input { color-scheme:light; }
 }
+
+@media screen {
+  .hero-copy .hero-lede { margin-top:.7rem; max-width:38ch; color:var(--clr-muted); }
+  .hero-actions, .after-save { display:flex; flex-wrap:wrap; gap:.5rem; margin:.9rem 0 .55rem; }
+  .hero-actions button, .after-save button { min-height:44px; }
+  .mode-note { color:var(--clr-muted); font-size:.85rem; max-width:45ch; }
+  .example-passport { min-width:0; background:#fff7e4; border:3px double #8c704b; border-radius:.75rem; padding:clamp(.8rem,2vw,1.35rem); box-shadow:0 .3rem 1rem #39230815; }
+  .example-label { color:#793624; text-transform:uppercase; letter-spacing:.10em; font-weight:800; font-size:.72rem; }
+  .example-passport h2, .departure-card h2 { margin:.28rem 0 .5rem; font:700 clamp(1.35rem,2.6vw,2.1rem)/1.15 Georgia,serif; letter-spacing:normal; text-transform:none; }
+  .example-passport > p:last-child { margin-top:.55rem; font-size:.85rem; color:var(--clr-muted); }
+  .example-stamps { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:clamp(.35rem,1.8vw,1rem); }
+  .example-stamps img { display:block; width:100%; aspect-ratio:1.95; object-fit:cover; border-radius:.3rem; }
+  .example-stamps figcaption { font-size:.78rem; margin-top:.27rem; }
+  .departure-card { background:#fff7e4; color:var(--clr-text); border:1px solid #c5a985; border-radius:.75rem; overflow:hidden; display:grid; grid-template-columns:minmax(0, .8fr) minmax(0,1.2fr); margin-bottom:1rem; }
+  .departure-art img { display:block; height:100%; width:100%; object-fit:cover; }
+  .departure-copy { padding:1rem; }
+  .departure-copy p + p, .departure-copy button { margin-top:.55rem; }
+  .departure-card h2:focus, #demo-next-heading:focus { outline:2px solid #793624; outline-offset:.15rem; }
+}
+.journey-note { font-weight:650; }
+@media screen and (max-width:550px) {
+  .hero h1 { font-size:clamp(2.05rem,8.8vw,2.85rem); }
+  .hero-actions { gap:.45rem; }
+  .hero-actions button { flex:1 1 auto; }
+  .departure-card { grid-template-columns:1fr; }
+  .departure-art img { height:auto; aspect-ratio:3.75; }
+}

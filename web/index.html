@@ -33,13 +33,23 @@
   <section class="hero" aria-labelledby="journey-title">
     <div class="hero-copy">
       <p class="hero-kicker">THE MOTHER ROAD · ILLINOIS</p>
-      <h1 id="journey-title">Walk <span class="route-name">Route 66</span>,<br />one day at a time.</h1>
-      <p>Turn everyday steps into a virtual road trip. Collect postcards along the way and print your own walking passport.</p>
+      <h1 id="journey-title">Walk <span class="route-name">Route 66</span>.<br />Make a passport.</h1>
+      <p class="hero-lede">Turn your everyday walks into a trip through Illinois. Earn postcards at stops and print the ones you choose.</p>
+      <div class="hero-actions">
+        <button id="hero-demo" type="button" class="btn-primary">Try 500 simulated steps</button>
+        <button id="hero-manual" type="button" class="btn-secondary">Log today’s steps</button>
+      </div>
+      <p class="mode-note">Demo is simulated. Manual uses the steps you enter. Each keeps its own progress and collection in this browser.</p>
     </div>
-    <figure class="hero-image">
-      <img src="route66-hero.webp" width="1536" height="1024" alt="An empty two-lane road runs through flat Illinois farmland beneath a golden dusk sky." fetchpriority="high" />
-      <figcaption>Illustration inspired by Route 66 in Illinois</figcaption>
-    </figure>
+    <aside class="example-passport" aria-labelledby="example-heading">
+      <p class="example-label">Sample · Not your progress</p>
+      <h2 id="example-heading">Your route, in stamps</h2>
+      <div class="example-stamps">
+        <figure><img src="il01-illustration.png" alt="Illustrated brick homes in North Lawndale" /><figcaption>01 · North Lawndale</figcaption></figure>
+        <figure><img src="postcards/IL03-wilmington-kankakee-river-illustration.webp" alt="Illustration of the river near Wilmington" /><figcaption>03 · Wilmington</figcaption></figure>
+      </div>
+      <p>Two example stamps on a passport you can print or save as PDF once you walk.</p>
+    </aside>
   </section>
 
   <nav class="mode-switch" aria-label="Walking mode">
@@ -47,10 +57,20 @@
     <button class="btn-secondary" type="button" id="mode-manual" aria-pressed="false" aria-controls="manual-panel">Manual Walk</button>
   </nav>
   <main id="demo-panel">
-    <section class="journey-start" aria-labelledby="demo-next-heading">
+    <section class="departure-card" id="demo-departure" aria-labelledby="departure-heading" hidden>
+      <div class="departure-art"><img src="route66-hero.webp" width="1536" height="1024" alt="Illustration of an open road at dusk" /></div>
+      <div class="departure-copy">
+        <p class="example-label">Demo keepsake · 500 simulated steps</p>
+        <h2 id="departure-heading" tabindex="-1">A note from Chicago</h2>
+        <p>Before there was an open highway, there was a Chicago street corner. Imagine the city behind you and a paper map in your pocket. You’ve started the route, but your first stop is still ahead.</p>
+        <p><strong>350 m simulated</strong> · Not a passport stamp or a Manual entry.</p>
+        <button id="departure-onward" type="button" class="btn-secondary">See my next stop</button>
+      </div>
+    </section>
+    <section class="journey-start" id="demo-next" aria-labelledby="demo-next-heading">
       <div>
         <p class="demo-banner" role="note">Simulated walk</p>
-        <h2 id="demo-next-heading">Next stop: North Lawndale</h2>
+        <h2 id="demo-next-heading" tabindex="-1">Next stop: North Lawndale</h2>
         <p id="demo-next-detail">17.703 km to your first postcard.</p>
       </div>
       <div class="journey-actions">
@@ -124,11 +144,16 @@
               Keep walking.
             </p>
             <p class="postcard-stamp">🗺 Horizon Walk the World · Route 66 Demo</p>
+            <p id="demo-card-note" class="journey-note"></p>
           </div>
         </div>
         <button id="btn-save-postcard" class="btn-secondary postcard-save-btn" disabled>
           Save postcard
         </button>
+        <div id="demo-next-actions" class="journey-actions after-save" hidden>
+          <button type="button" class="btn-primary" data-open-my-passport>Open my passport</button>
+          <button type="button" class="btn-secondary" data-keep-walking>Keep walking</button>
+        </div>
         <div id="demo-shelf" aria-label="More Illinois postcards"></div>
         <p id="demo-shelf-status" role="status"></p>
       </div>
@@ -144,6 +169,8 @@
     <section class="manual-entry" aria-labelledby="manual-heading">
       <h2 id="manual-heading">Manual Walk</h2>
       <p>Add your real step count to keep moving along the route. This walk has its own progress and postcards.</p>
+      <p id="manual-first-target" class="journey-note">First Steps badge: 6,000 steps to go · 4.2 km total.</p>
+      <p id="manual-next-target">North Lawndale: 25,290 steps to the first real-route postcard.</p>
       <p id="manual-zone"></p>
       <button type="button" id="manual-start" class="btn-primary">Start Manual Walk</button>
       <form id="manual-form" hidden novalidate>
@@ -172,6 +199,10 @@
         <figcaption>North Lawndale · Illustration</figcaption>
       </figure>
       <button type="button" id="manual-postcard" class="btn-secondary" disabled>Save Manual postcard</button>
+      <p id="manual-card-note" class="journey-note" hidden></p>
+      <div id="manual-next-actions" class="journey-actions after-save" hidden>
+        <button type="button" class="btn-primary" data-open-my-passport>Open my passport</button>
+      </div>
       <div id="manual-shelf" aria-label="More Illinois postcards"></div>
       <p id="manual-shelf-status" role="status"></p>
     </section>
@@ -201,6 +232,7 @@
       <p data-passport-mode></p>
       <p data-passport-distance></p>
       <p data-passport-awards></p>
+      <p class="journey-note" data-passport-note hidden></p>
       <h3 data-passport-stamp-title>Postcard stamps</h3>
       <div class="passport-stamps" data-passport-stamps>
       <figure class="passport-art" data-passport-card hidden>

@@ -1,3 +1,4 @@
+import { addDeparture, DEPARTURE_ID, demoJourneyNote } from './journey-keepsake.mjs';
 import { routeProgress, demoStepsToVisibleStop } from './route-catalog.mjs';
 /**
  * Horizon Walk the World — Route 66 · English Demo
@@ -48,6 +49,8 @@ let walkingToStop = false;
 const displaySteps    = document.getElementById('display-steps');
 const displayMm       = document.getElementById('display-mm');
 const displayKm       = document.getElementById('display-km');
+const heroDemo = document.getElementById('hero-demo');
+const departure = document.getElementById('demo-departure');
 const btnTopup        = document.getElementById('btn-topup');
 const btnSavePostcard = document.getElementById('btn-save-postcard');
 const postcard        = document.getElementById('postcard');
@@ -82,6 +85,10 @@ function render(state, newAwards = []) {
   btnTopup.dataset.stopId = next?.id ?? '';
   btnTopup.textContent = next ? 'Walk to ' + next.name : 'Illinois chapter complete';
 
+  departure.hidden = !state.seenIds.has(DEPARTURE_ID);
+  heroDemo.textContent = state.totalMm === 0 ? 'Try 500 simulated steps' : 'Continue my Demo Walk';
+  document.getElementById('demo-card-note').textContent = demoJourneyNote(state);
+  document.getElementById('demo-next-actions').hidden = !postcardSaved;
   // Badges
   for (const [mmStr, meta] of Object.entries(BADGE_META)) {
     const mm  = Number(mmStr);
@@ -168,6 +175,29 @@ function failed(error) {
     announce('Demo was reset in another tab. This action was not applied.');
   } else announce('Demo progress could not be saved safely.');
 }
+function focusNextStop() {
+  (btnTopup.hidden ? document.getElementById('demo-next-heading') : btnTopup).focus();
+}
+let departurePending = false;
+heroDemo.addEventListener('click', async () => {
+  if (departurePending) return;
+  departurePending = true;
+  document.getElementById('mode-demo').click();
+  try {
+    if (appState.totalMm === 0) {
+      show(await store.transact(generation, addDeparture));
+      if (!departure.hidden) {
+        document.getElementById('departure-heading').focus();
+        announce('Departure keepsake unlocked. 500 simulated steps. Your first stop is still ahead.');
+        return;
+      }
+    }
+    focusNextStop();
+  } catch (error) { failed(error); focusNextStop(); }
+  finally { departurePending = false; }
+});
+document.getElementById('departure-onward').addEventListener('click', focusNextStop);
+document.querySelector('[data-keep-walking]').addEventListener('click', focusNextStop);
 document.getElementById('btn-6k').addEventListener('click',()=>dispatch(6_000));
 document.getElementById('btn-12k').addEventListener('click',()=>dispatch(12_000));
 btnTopup.addEventListener('click', async event => {

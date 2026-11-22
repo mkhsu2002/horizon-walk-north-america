@@ -12,6 +12,7 @@ export function initPassport(root) {
   const sheet   = root.querySelector('[data-passport-sheet]');
   const modeEl  = root.querySelector('[data-passport-mode]');
   const distEl  = root.querySelector('[data-passport-distance]');
+  const noteEl = root.querySelector('[data-passport-note]');
   const awardsEl= root.querySelector('[data-passport-awards]');
   const card    = root.querySelector('[data-passport-card]');
   const stampList = root.querySelector('[data-passport-stamps]');
@@ -44,6 +45,11 @@ export function initPassport(root) {
     if (modeEl)   modeEl.textContent   = mode === 'Demo' ? 'DEMO WALK · Simulated steps' : 'MANUAL WALK · Self-reported steps';
     if (distEl)   distEl.textContent   = formatDistance(model.totalMm);
     if (awardsEl) awardsEl.textContent = awardLabels(model);
+
+    if (noteEl) {
+      noteEl.textContent = model.journeyNote || '';
+      noteEl.hidden = !model.journeyNote;
+    }
 
     const stamps = passportStamps(model.saved, model.il01 && model.postcardSaved);
     if (helper) {

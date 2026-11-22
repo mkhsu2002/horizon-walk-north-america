@@ -1,3 +1,4 @@
+import { manualMilestones, manualJourneyNote } from './journey-keepsake.mjs';
 import { challengeDate, createManualState, setManualDay, saveManualPostcard } from './manual-engine.mjs';
 
 import { createManualPostcards, MANUAL_SHELF_KEY } from './manual-postcards.mjs';
@@ -44,7 +45,23 @@ function setMode(manual) {
 el('mode-demo').addEventListener('click', () => setMode(false));
 el('mode-manual').addEventListener('click', () => setMode(true));
 
+el('hero-manual').addEventListener('click', () => {
+  el('mode-manual').click();
+  (ledger ? el('manual-steps') : el('manual-start')).focus();
+});
+const stepLabel = n => n.toLocaleString('en-US') + (n === 1 ? ' step' : ' steps');
+
 function render() {
+  const targets = manualMilestones(ledger?.totalMm ?? 0);
+  el('manual-first-target').textContent = ledger?.awards.firstBadge
+    ? 'First Steps badge earned · 4.2 km.'
+    : 'First Steps badge: ' + stepLabel(targets.firstBadgeSteps) + ' to go · 4.2 km total.';
+  el('manual-next-target').textContent = targets.nextName
+    ? targets.nextName + ': ' + stepLabel(targets.nextSteps) + ' to the next Illinois stop.'
+    : 'Illinois chapter complete.';
+  el('manual-card-note').textContent = manualJourneyNote(ledger);
+  el('manual-card-note').hidden = !ledger?.awards.il01;
+  el('manual-next-actions').hidden = !ledger?.postcardSent;
   el('manual-start').hidden = Boolean(ledger);
   el('manual-form').hidden = !ledger;
   if (!ledger) return;
