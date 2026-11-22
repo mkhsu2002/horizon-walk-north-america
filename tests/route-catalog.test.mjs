@@ -128,3 +128,14 @@ describe("routeProgress – invalid inputs", () => {
     assert.throws(() => routeProgress(Number.MAX_SAFE_INTEGER + 1), RangeError);
   });
 });
+
+it('named CTA uses integer ceiling and never redirects a stale click', async () => {
+  const {demoStepsToVisibleStop}=await import('../web/route-catalog.mjs');
+  assert.equal(demoStepsToVisibleStop(0,'IL01'),25290);
+  assert.equal(demoStepsToVisibleStop(0,'IL02'),0);
+  assert.equal(demoStepsToVisibleStop(17703000,'IL01'),0);
+  assert.equal(demoStepsToVisibleStop(17703000,'IL02'),64373);
+  assert.equal(demoStepsToVisibleStop(62763400,'IL02'),1);
+  assert.equal(demoStepsToVisibleStop(62764100,'IL02'),0);
+  assert.equal(demoStepsToVisibleStop(531084400,'IL12'),0);
+});

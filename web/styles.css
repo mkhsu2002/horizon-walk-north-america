@@ -463,3 +463,14 @@ button:disabled { opacity: 0.4; cursor: not-allowed; }
 
 @media screen { .hero .route-name { white-space:nowrap; } }
 @media screen and (min-width:1000px) { .hero h1 { font-size:clamp(2.7rem, 3.72vw, 3.68rem); } }
+
+@media screen {
+  .journey-actions { display:flex; gap:.5rem; flex-wrap:wrap; }
+  .journey-collection-link { color:#702719; background:transparent; border-color:#795f47; }
+  .journey-collection-link:hover { color:#702719; background:#ebddc9; }
+  .passport > h2, .passport > p, .passport [data-passport-mode] { color:#4e3e2f; }
+  .passport button { min-height:44px; }
+  .passport .btn-secondary:not(:disabled) { color:#702719; border-color:#795f47; background:#fffaf0; }
+  .passport .btn-secondary:hover:not(:disabled) { background:#ebddc9; }
+}
+@media screen and (max-width:650px) { .journey-actions { width:100%; } }

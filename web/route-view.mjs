@@ -45,7 +45,7 @@ function update(nextMode = mode) {
     byId('demo-next-heading').textContent = progress.next ? 'Next stop: ' + progress.next.name : 'Illinois chapter complete';
     byId('demo-next-detail').textContent = progress.next
       ? (progress.current.id === 'IL00' ? remainingLabel(progress.remainingToNextMm) + ' to your first postcard.'
-        : remainingLabel(progress.remainingToNextMm) + ' to your next postcard. Open the step controls to keep walking.')
+        : remainingLabel(progress.remainingToNextMm) + ' to your next postcard. Use the walk button to reach it.')
       : 'Revisit your postcard collection or preview your walking passport.';
   }
   byId('route-mode').textContent = mode.toUpperCase() + ' WALK';

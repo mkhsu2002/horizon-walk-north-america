@@ -61,3 +61,10 @@ export function routeProgress(totalMm) {
 
   return { current, next, remainingToNextMm, remainingToFinishMm };
 }
+
+// Derive the jump from the locked current ledger and the stop displayed at click time.
+export function demoStepsToVisibleStop(totalMm, stopId) {
+  const next = routeProgress(totalMm).next;
+  if (!next || next.id !== stopId) return 0;
+  return Math.ceil((next.meters * 1000 - totalMm) / 700);
+}

@@ -36,8 +36,10 @@
         <h2 id="demo-next-heading">Next stop: North Lawndale</h2>
         <p id="demo-next-detail">17.703 km to your first postcard.</p>
       </div>
-      <button id="btn-topup" class="btn-primary">Walk to North Lawndale</button>
-      <a class="journey-collection-link" id="journey-collection-link" href="#demo-collection" hidden>Open your postcards</a>
+      <div class="journey-actions">
+        <button id="btn-topup" class="btn-primary" data-stop-id="IL01">Walk to North Lawndale</button>
+        <a class="journey-collection-link" id="journey-collection-link" href="#demo-collection">Open your postcards</a>
+      </div>
     </section>
     <section class="stats" aria-label="Current progress">
       <div class="stat-card">
@@ -174,7 +176,7 @@
 
   <section class="passport" id="passport" aria-label="Route 66 Walking Passport">
     <h2>Walking Passport</h2>
-    <p>Earn your first badge to preview a US Letter passport. Print it or use your browser to save as PDF.</p>
+    <p data-passport-helper>Demo Walk: 0 of 12 postcards saved. Your first badge unlocks the passport. Print it on US Letter paper or save it as a PDF.</p>
     <button type="button" class="btn-secondary" data-passport-open disabled>Preview passport</button>
     <section class="passport-sheet" data-passport-sheet hidden aria-label="Passport preview">
       <p class="passport-eyebrow">HORIZON OUTDOOR · WALK THE WORLD</p>

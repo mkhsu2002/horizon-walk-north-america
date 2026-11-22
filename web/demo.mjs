@@ -1,3 +1,4 @@
+import { routeProgress, demoStepsToVisibleStop } from './route-catalog.mjs';
 /**
  * Horizon Walk the World — Route 66 · English Demo
  * Standalone browser prototype (simulated, no account).
@@ -39,6 +40,7 @@ const BADGE_META = {
 
 let appState      = createState();
 let postcardSaved = false;
+let walkingToStop = false;
 
 
 // ── DOM refs ──────────────────────────────────────────────────────────────────
@@ -74,19 +76,11 @@ function render(state, newAwards = []) {
   displayMm.textContent    = state.totalMm.toLocaleString('en-US') + ' mm';
   displayKm.textContent    = km.toFixed(3) + ' km';
 
-  document.getElementById('journey-collection-link').hidden = steps < IL01_STEPS;
-  btnTopup.hidden = steps >= IL01_STEPS;
-
-  // Top-up button: no-op once at or past IL01
-  if (steps >= IL01_STEPS) {
-    btnTopup.disabled            = true;
-    btnTopup.textContent         = 'North Lawndale reached';
-    btnTopup.setAttribute('aria-disabled', 'true');
-  } else {
-    btnTopup.disabled = false;
-    btnTopup.textContent = 'Walk to North Lawndale';
-    btnTopup.removeAttribute('aria-disabled');
-  }
+  const next = routeProgress(state.totalMm).next;
+  btnTopup.hidden = !next;
+  btnTopup.disabled = walkingToStop || !next;
+  btnTopup.dataset.stopId = next?.id ?? '';
+  btnTopup.textContent = next ? 'Walk to ' + next.name : 'Illinois chapter complete';
 
   // Badges
   for (const [mmStr, meta] of Object.entries(BADGE_META)) {
@@ -154,12 +148,12 @@ function show(next, awards = []) {
 function readLatest() {
   try { show(store.read()); } catch { announce('Saved Demo progress could not be read.'); }
 }
-async function dispatch(steps, topup = false) {
+async function dispatch(steps, stopId = null) {
   const batchId=crypto.randomUUID();
   let awards=[];
   try {
     const next=await store.transact(generation, current=>{
-      const count=topup ? Math.max(0, IL01_STEPS-totalSteps(current.state)) : steps;
+      const count=stopId ? demoStepsToVisibleStop(current.state.totalMm, stopId) : steps;
       if (!count) return current;
       const result=applyBatch(current.state,{id:batchId,steps:count});
       awards=result.newAwards;
@@ -176,7 +170,19 @@ function failed(error) {
 }
 document.getElementById('btn-6k').addEventListener('click',()=>dispatch(6_000));
 document.getElementById('btn-12k').addEventListener('click',()=>dispatch(12_000));
-btnTopup.addEventListener('click',()=>dispatch(0,true));
+btnTopup.addEventListener('click', async event => {
+  // Native pointer double-clicks stay one action even if storage commits between clicks.
+  if (event.detail > 1) return;
+  const stopId = btnTopup.dataset.stopId;
+  if (walkingToStop || !stopId) return;
+  walkingToStop = true;
+  btnTopup.disabled = true;
+  try { await dispatch(0, stopId); }
+  finally {
+    walkingToStop = false;
+    btnTopup.disabled = btnTopup.hidden;
+  }
+});
 btnSavePostcard.addEventListener('click',async()=>{
   try {
     const next=await store.transact(generation,current=>{

@@ -7,6 +7,7 @@ export function passportStamps(saved, legacyIL01Saved) {
 }
 
 export function initPassport(root) {
+  const helper  = root.querySelector('[data-passport-helper]');
   const open    = root.querySelector('[data-passport-open]');
   const sheet   = root.querySelector('[data-passport-sheet]');
   const modeEl  = root.querySelector('[data-passport-mode]');
@@ -45,6 +46,11 @@ export function initPassport(root) {
     if (awardsEl) awardsEl.textContent = awardLabels(model);
 
     const stamps = passportStamps(model.saved, model.il01 && model.postcardSaved);
+    if (helper) {
+      const count = (mode === 'Demo' ? 'Demo Walk' : 'Manual Walk') + ': ' + stamps.length + ' of 12 postcards saved.';
+      const gate = model.firstBadge ? '' : ' Your first badge unlocks the passport.';
+      helper.textContent = count + gate + ' Print it on US Letter paper or save it as a PDF.';
+    }
     card.hidden = !stamps.some(s=>s.id==='IL01');
     stampTitle.textContent = 'Postcard stamps · ' + stamps.length + ' of 12';
     stampList.dataset.count = String(stamps.length);
