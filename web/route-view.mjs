@@ -41,6 +41,13 @@ function update(nextMode = mode) {
   mode = nextMode;
   const mm = totalDistance();
   const progress = routeProgress(mm);
+  if (mode === 'Demo') {
+    byId('demo-next-heading').textContent = progress.next ? 'Next stop: ' + progress.next.name : 'Illinois chapter complete';
+    byId('demo-next-detail').textContent = progress.next
+      ? (progress.current.id === 'IL00' ? remainingLabel(progress.remainingToNextMm) + ' to your first postcard.'
+        : remainingLabel(progress.remainingToNextMm) + ' to your next postcard. Open the step controls to keep walking.')
+      : 'Revisit your postcard collection or preview your walking passport.';
+  }
   byId('route-mode').textContent = mode.toUpperCase() + ' WALK';
   region.textContent = progress.next
     ? 'Latest stop: ' + progress.current.name + ' · Next: ' + progress.next.name + ' in ' + remainingLabel(progress.remainingToNextMm)

@@ -7,44 +7,60 @@
   <link rel="stylesheet" href="styles.css" />
 </head>
 <body>
-  <header>
-    <div class="demo-banner" role="note" aria-label="Simulated demo notice">
-      ⚠ SIMULATED DEMO — steps and awards are not connected to any real account
+  <header class="masthead">
+    <div class="masthead-inner">
+      <div class="brand-lockup"><strong>Horizon Outdoor</strong><span>Walk the World</span></div>
+      <span class="masthead-chapter">The Illinois chapter</span>
     </div>
-    <h1>Horizon Walk the World</h1>
-    <p class="subtitle">Route 66 · Illinois</p>
   </header>
+  <section class="hero" aria-labelledby="journey-title">
+    <div class="hero-copy">
+      <p class="hero-kicker">THE MOTHER ROAD · ILLINOIS</p>
+      <h1 id="journey-title">Walk <span class="route-name">Route 66</span>,<br />one day at a time.</h1>
+      <p>Turn everyday steps into a virtual road trip. Collect postcards along the way and print your own walking passport.</p>
+    </div>
+    <figure class="hero-image">
+      <img src="route66-hero.webp" width="1536" height="1024" alt="An empty two-lane road runs through flat Illinois farmland beneath a golden dusk sky." fetchpriority="high" />
+      <figcaption>Illustration inspired by Route 66 in Illinois</figcaption>
+    </figure>
+  </section>
 
   <nav class="mode-switch" aria-label="Walking mode">
     <button class="btn-secondary" type="button" id="mode-demo" aria-pressed="true" aria-controls="demo-panel">Demo Walk</button>
     <button class="btn-secondary" type="button" id="mode-manual" aria-pressed="false" aria-controls="manual-panel">Manual Walk</button>
   </nav>
   <main id="demo-panel">
+    <section class="journey-start" aria-labelledby="demo-next-heading">
+      <div>
+        <p class="demo-banner" role="note">Simulated walk</p>
+        <h2 id="demo-next-heading">Next stop: North Lawndale</h2>
+        <p id="demo-next-detail">17.703 km to your first postcard.</p>
+      </div>
+      <button id="btn-topup" class="btn-primary">Walk to North Lawndale</button>
+      <a class="journey-collection-link" id="journey-collection-link" href="#demo-collection" hidden>Open your postcards</a>
+    </section>
     <section class="stats" aria-label="Current progress">
       <div class="stat-card">
         <span class="stat-label">Cumulative Steps</span>
         <span class="stat-value" id="display-steps">0</span>
       </div>
-      <div class="stat-card">
-        <span class="stat-label">Distance</span>
+      <div class="stat-card" hidden>
+        <span class="stat-label">Distance in millimetres</span>
         <span class="stat-value" id="display-mm">0 mm</span>
       </div>
       <div class="stat-card">
-        <span class="stat-label">Kilometres</span>
+        <span class="stat-label">Distance walked</span>
         <span class="stat-value" id="display-km">0.000 km</span>
       </div>
     </section>
 
-    <section class="actions" aria-label="Add steps">
-      <h2>Add Steps</h2>
+    <details class="actions demo-tools">
+      <summary>Try other step totals</summary>
       <div class="button-row">
         <button id="btn-6k"  class="btn-primary">Add 6,000 steps</button>
         <button id="btn-12k" class="btn-primary">Add 12,000 steps</button>
-        <button id="btn-topup" class="btn-secondary">
-          Top-up to IL01 (25,290 steps)
-        </button>
       </div>
-    </section>
+    </details>
 
     <section class="badges" aria-label="Earned badges">
       <h2>Badges</h2>
@@ -70,8 +86,8 @@
       </ul>
     </section>
 
-    <section class="postcard-section" aria-label="Postcard">
-      <h2>Postcard</h2>
+    <section class="postcard-section" id="demo-collection" aria-label="Postcard collection">
+      <h2>Postcard collection</h2>
       <div id="postcard-area">
         <p class="postcard-hint" id="postcard-hint">
           Reach IL01 to unlock your postcard.
@@ -99,15 +115,16 @@
       </div>
     </section>
 
-    <section class="danger-zone" aria-label="Reset">
-      <button id="btn-reset" class="btn-danger">Reset all progress</button>
-    </section>
+    <details class="danger-zone demo-tools">
+      <summary>Manage simulated progress</summary>
+      <button id="btn-reset" class="btn-danger">Reset all demo progress</button>
+    </details>
   </main>
 
   <main id="manual-panel" hidden>
-    <section aria-labelledby="manual-heading">
+    <section class="manual-entry" aria-labelledby="manual-heading">
       <h2 id="manual-heading">Manual Walk</h2>
-      <p>Log your own daily step totals. Your Demo progress and rewards stay separate.</p>
+      <p>Add your real step count to keep moving along the route. This walk has its own progress and postcards.</p>
       <p id="manual-zone"></p>
       <button type="button" id="manual-start" class="btn-primary">Start Manual Walk</button>
       <form id="manual-form" hidden novalidate>
@@ -149,7 +166,7 @@
       <p id="route-mode" class="route-kicker">DEMO WALK</p>
       <p id="route-progress" role="status" aria-live="polite"></p>
     </div>
-    <details class="route-details" open>
+    <details class="route-details">
       <summary>Explore all 13 stops</summary>
       <ol id="route-stops" class="route-stops"></ol>
     </details>

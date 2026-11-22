@@ -74,14 +74,17 @@ function render(state, newAwards = []) {
   displayMm.textContent    = state.totalMm.toLocaleString('en-US') + ' mm';
   displayKm.textContent    = km.toFixed(3) + ' km';
 
+  document.getElementById('journey-collection-link').hidden = steps < IL01_STEPS;
+  btnTopup.hidden = steps >= IL01_STEPS;
+
   // Top-up button: no-op once at or past IL01
   if (steps >= IL01_STEPS) {
     btnTopup.disabled            = true;
-    btnTopup.textContent         = 'IL01 reached ✓';
+    btnTopup.textContent         = 'North Lawndale reached';
     btnTopup.setAttribute('aria-disabled', 'true');
   } else {
     btnTopup.disabled = false;
-    btnTopup.textContent = 'Top-up to IL01 (25,290 steps)';
+    btnTopup.textContent = 'Walk to North Lawndale';
     btnTopup.removeAttribute('aria-disabled');
   }
 
