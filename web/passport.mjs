@@ -17,6 +17,7 @@ export function initPassport(root) {
   const card    = root.querySelector('[data-passport-card]');
   const stampList = root.querySelector('[data-passport-stamps]');
   const stampTitle = root.querySelector('[data-passport-stamp-title]');
+  const empty = root.querySelector('[data-passport-empty]');
   const print   = root.querySelector('[data-passport-print]');
   const close   = root.querySelector('[data-passport-close]');
 
@@ -57,6 +58,7 @@ export function initPassport(root) {
       const gate = model.firstBadge ? '' : ' Your first badge unlocks the passport.';
       helper.textContent = count + gate + ' Print it on US Letter paper or save it as a PDF.';
     }
+    empty.hidden = mode !== 'Manual' || !model.firstBadge || stamps.length > 0;
     card.hidden = !stamps.some(s=>s.id==='IL01');
     stampTitle.textContent = 'Postcard stamps · ' + stamps.length + ' of 12';
     stampList.dataset.count = String(stamps.length);

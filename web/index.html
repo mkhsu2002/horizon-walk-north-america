@@ -180,6 +180,11 @@
         <button type="submit" class="btn-primary">Save daily total</button>
       </form>
       <p id="manual-status" role="status" aria-live="polite"></p>
+      <div id="manual-passport-entry" class="journey-note" hidden>
+        <h3 id="manual-passport-heading" tabindex="-1">Your first passport page is ready</h3>
+        <p id="manual-passport-distance"></p>
+        <button type="button" class="btn-secondary" data-open-my-passport>View my walking passport</button>
+      </div>
     </section>
     <section class="stats" aria-label="Manual progress">
       <div class="stat-card"><span class="stat-label">Total steps</span><span class="stat-value" id="manual-total">0</span></div>
@@ -198,9 +203,6 @@
       </figure>
       <button type="button" id="manual-postcard" class="btn-secondary" disabled>Save Manual postcard</button>
       <p id="manual-card-note" class="journey-note" hidden></p>
-      <div id="manual-next-actions" class="journey-actions after-save" hidden>
-        <button type="button" class="btn-primary" data-open-my-passport>Open my passport</button>
-      </div>
       <div id="manual-shelf" aria-label="More Illinois postcards"></div>
       <p id="manual-shelf-status" role="status"></p>
     </section>
@@ -231,6 +233,15 @@
       <p data-passport-distance></p>
       <p data-passport-awards></p>
       <p class="journey-note" data-passport-note hidden></p>
+      <section class="passport-opening" data-passport-empty aria-label="Opening page" hidden>
+        <h3>Opening page</h3>
+        <p class="passport-opening-line">An ordinary walk is enough to begin a long road.</p>
+        <figure>
+          <img src="route66-hero.webp" width="1536" height="1024" alt="Illustrated road stretching into the distance at dusk" />
+          <figcaption>Illinois Route 66 cover illustration · Not a collected postcard</figcaption>
+        </figure>
+        <p>No postcards saved yet.</p>
+      </section>
       <h3 data-passport-stamp-title>Postcard stamps</h3>
       <div class="passport-stamps" data-passport-stamps>
       <figure class="passport-art" data-passport-card hidden>

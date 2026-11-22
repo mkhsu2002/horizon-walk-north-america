@@ -344,6 +344,16 @@ button:disabled { opacity: 0.4; cursor: not-allowed; }
 .passport-art img { display:block; width:100%; max-width:30rem; height:auto; max-height:19rem; object-fit:contain; margin:auto; }
 .passport-actions { display:flex; flex-wrap:wrap; gap:.5rem; margin-top:1rem; }
 
+.passport-opening { margin:1rem 0 .8rem; padding:.75rem 0; border-block:1px solid #c9b79a; }
+.passport-opening-line { font-family:Georgia,serif; font-style:italic; }
+.passport-opening figure { max-width:25rem; margin:.7rem auto; }
+.passport-opening img { display:block; width:100%; height:auto; }
+.passport-opening figcaption { padding-top:.2rem; font-size:.77rem; }
+@media print {
+  .passport-opening { break-inside:avoid; }
+  .passport-opening figure { max-width:4.1in; }
+}
+
 @page { size: Letter portrait; margin: .55in; }
 @media print {
   html, body { margin:0!important; padding:0!important; min-height:0!important; background:#fff!important; color:#251f16!important; }

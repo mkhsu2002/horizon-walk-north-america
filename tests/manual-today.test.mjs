@@ -13,14 +13,15 @@ const envelope = state => JSON.stringify({ version: 1, state });
 
 // Exercise the real DOM listeners and store with a minimal isolated event fixture.
 async function fixture(t, raw = envelope(initial)) {
-  let now = before, focused;
+  let now = before, focused, beforeLock;
   const elements = new Map();
   const get = id => {
     if (!elements.has(id)) elements.set(id, {
       value: '', hidden: true, handlers: {},
       addEventListener(type, handler) { this.handlers[type] = handler; },
       click() { return this.handlers.click?.(); },
-      focus() { focused = id; },
+      focus(options) { focused = id; this.focusOptions = options; },
+      scrollIntoView(options) { (this.scrollCalls ??= []).push(options); },
       setAttribute() {}, replaceChildren() {}, classList: { toggle() {} },
     });
     return elements.get(id);
@@ -28,10 +29,11 @@ async function fixture(t, raw = envelope(initial)) {
   const row = { prepend(first) { this.firstElementChild = first; } };
   get('hero-demo').parentElement = get('hero-manual').parentElement = row;
   const data = new Map([[MANUAL_STORAGE_KEY, raw], [DEMO_STORAGE_KEY, 'unchanged']]);
+  get('manual-form').contains = node => node === get('manual-steps');
   const globals = {
-    document: { getElementById: get, querySelector: get },
+    document: { getElementById: get, querySelector: get, get activeElement() { return focused ? get(focused) : null; } },
     window: { localStorage: { getItem: key => data.get(key) ?? null, setItem: (key, val) => data.set(key, val) }, dispatchEvent() {} },
-    navigator: { locks: { request: async (_, __, fn) => fn() } },
+    navigator: { locks: { request: async (key, _, fn) => { if (key === MANUAL_STORAGE_KEY) beforeLock?.(); return fn(); } } },
     addEventListener() {},
   };
   for (const [key, value] of Object.entries(globals)) {
@@ -43,7 +45,7 @@ async function fixture(t, raw = envelope(initial)) {
   await import('../web/manual.mjs?' + t.name);
   const field = get('manual-steps'), date = get('manual-date');
   return {
-    get, date, field, data, focus: () => focused, next: () => { now = after; },
+    get, date, field, data, focus: () => focused, setBeforeLock: fn => { beforeLock = fn; }, next: () => { now = after; },
     type: value => { field.value = value; field.handlers.input(); },
     select: value => { date.value = value; date.handlers.change(); },
     save: () => get('manual-form').handlers.submit({ preventDefault() {} }),
@@ -159,4 +161,75 @@ test('Vancouver midnight is consistent under stale and updated zone data, withou
   const preTransition = Date.parse('2026-02-01T07:30:00Z');
   assert.equal(challengeDate(preTransition, 'America/Vancouver'), '2026-01-31');
   assert.equal(challengeDate(preTransition, 'Canada/Pacific'), '2026-01-31');
+});
+
+const freshManual = envelope(createManualState(before, zone));
+
+test('ordinary Manual save reveals a distinct passport page at 6,000, not at 5,999', async t => {
+  const f = await fixture(t, freshManual);
+  f.get('hero-manual').click();
+  f.type('5999');
+  await f.save();
+  assert.equal(f.get('manual-passport-entry').hidden, true);
+  assert.equal(f.focus(), 'manual-steps');
+  f.type('6000');
+  await f.save();
+  assert.equal(f.get('manual-passport-entry').hidden, false);
+  assert.equal(f.get('manual-passport-heading').textContent, 'Your first passport page is ready');
+  assert.match(f.get('manual-passport-distance').textContent, /North Lawndale.*17\.703 km\. 19,290 steps to go/);
+  assert.match(f.get('manual-status').textContent, /first postcard is still ahead/);
+  assert.equal(f.focus(), 'manual-passport-heading');
+  assert.deepEqual(f.get('manual-passport-entry').scrollCalls, [{ block: 'center', behavior: 'instant' }]);
+  assert.deepEqual(f.get('manual-passport-heading').focusOptions, { preventScroll: true });
+  assert.equal(f.read().awards.il01, false);
+  assert.equal(f.read().postcardSent, false);
+  assert.equal(f.data.get(DEMO_STORAGE_KEY), 'unchanged');
+  f.get('manual-steps').focus();
+  await f.save();
+  assert.equal(f.focus(), 'manual-steps');
+  assert.equal(f.get('manual-passport-entry').scrollCalls.length, 1);
+  assert.doesNotMatch(f.get('manual-status').textContent, /first passport page/);
+});
+
+test('legacy and past corrections show the available page without grabbing focus', async t => {
+  const f = await fixture(t);
+  assert.equal(f.get('manual-passport-entry').hidden, false);
+  assert.equal(f.focus(), undefined);
+  assert.equal(f.get('manual-passport-entry').scrollCalls, undefined);
+  f.next();
+  f.get('mode-manual').click();
+  f.select(day1);
+  f.get('manual-steps').focus();
+  f.type('5000');
+  await f.save();
+  assert.equal(f.focus(), 'manual-steps');
+  assert.match(f.get('manual-passport-distance').textContent, /20,290 steps/);
+});
+
+test('past-day save can earn the page silently and mode shift stops focus movement', async t => {
+  const f = await fixture(t, freshManual);
+  f.next();
+  f.get('mode-manual').click();
+  f.get('manual-steps').focus();
+  f.type('6000'); // The date picker still intentionally selects day1.
+  await f.save();
+  assert.equal(f.get('manual-passport-entry').hidden, false);
+  assert.equal(f.focus(), 'manual-steps');
+  assert.doesNotMatch(f.get('manual-status').textContent, /first passport page/);
+});
+
+test('leaving Manual while the qualifying save completes never focuses or announces its page', async t => {
+  const f = await fixture(t, freshManual);
+  f.get('hero-manual').click();
+  f.type('6000');
+  f.setBeforeLock(() => {
+    f.get('mode-demo').click();
+    f.get('mode-demo').focus();
+  });
+  await f.save();
+  assert.equal(f.get('manual-panel').hidden, true);
+  assert.equal(f.get('manual-passport-entry').hidden, false);
+  assert.equal(f.focus(), 'mode-demo');
+  assert.equal(f.get('manual-passport-entry').scrollCalls, undefined);
+  assert.doesNotMatch(f.get('manual-status').textContent, /first passport page/);
 });

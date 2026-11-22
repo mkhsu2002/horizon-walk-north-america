@@ -126,7 +126,16 @@ function render() {
     : 'Illinois chapter complete.';
   el('manual-card-note').textContent = manualJourneyNote(ledger);
   el('manual-card-note').hidden = !ledger?.awards.il01;
-  el('manual-next-actions').hidden = !ledger?.postcardSent;
+  el('manual-passport-entry').hidden = !ledger?.awards.firstBadge;
+  const waitingForFirstCard = ledger?.awards.firstBadge && !ledger.awards.il01;
+  el('manual-passport-heading').textContent = waitingForFirstCard
+    ? 'Your first passport page is ready'
+    : 'Your walking passport';
+  const passportDistance = el('manual-passport-distance');
+  passportDistance.hidden = !waitingForFirstCard;
+  passportDistance.textContent = waitingForFirstCard
+    ? 'North Lawndale’s postcard unlocks at 17.703 km. ' + stepLabel(targets.nextSteps ?? 0) + ' to go.'
+    : '';
   el('manual-start').hidden = Boolean(ledger);
   el('manual-form').hidden = !ledger;
   if (!ledger) return;
@@ -183,22 +192,37 @@ el('manual-form').addEventListener('submit', async event => {
   if (!/^\d+$/.test(value)) { announce('Enter a whole number from 0 to 100,000.'); return; }
   const date = el('manual-date').value;
   const fieldValue = el('manual-steps').value;
-  let earned = 0, inputError = null;
+  const focusedAtSubmit = document.activeElement;
+  const form = el('manual-form');
+  let earned = 0, firstPageToday = false, inputError = null;
   try {
     const next = await store.transact(current => {
       if (!current) throw new Error('Manual challenge is not available');
       let candidate;
-      try { candidate = setManualDay(current, date, Number(value), Date.now()); }
+      const now = Date.now();
+      try { candidate = setManualDay(current, date, Number(value), now); }
       catch (error) { inputError = error; throw error; }
       earned = Object.keys(candidate.awards).filter(key => candidate.awards[key] && !current.awards[key]).length;
+      firstPageToday = !current.awards.firstBadge && candidate.awards.firstBadge && !candidate.awards.il01
+        && date === challengeDate(now, current.zone);
       return candidate;
     });
     didCommit(next);
-    if (el('manual-date').value === date && el('manual-steps').value === fieldValue) {
+    const stillEditingThisSave = el('manual-date').value === date && el('manual-steps').value === fieldValue;
+    if (stillEditingThisSave) {
       formDirty = false;
       el('manual-today-choice').hidden = true;
     }
-    announce('Daily total saved for ' + date + '.' + (earned ? ' New rewards in your collection: ' + earned + '.' : ''));
+    const showFirstPageNow = firstPageToday && stillEditingThisSave && !el('manual-panel').hidden;
+    announce('Daily total saved for ' + date + '.' + (showFirstPageNow
+      ? ' Your first passport page is ready. Your first postcard is still ahead.'
+      : earned ? ' New rewards in your collection: ' + earned + '.' : ''));
+    if (showFirstPageNow && document.activeElement === focusedAtSubmit && form.contains(focusedAtSubmit)) {
+      // Reveal the heading, postcard distance and action together. Focusing the
+      // heading alone can leave the button below a small mobile viewport.
+      el('manual-passport-entry').scrollIntoView({ block: 'center', behavior: 'instant' });
+      el('manual-passport-heading').focus({ preventScroll: true });
+    }
   } catch { announce(inputError?.message ?? writeUnavailable); }
 });
 el('manual-postcard').addEventListener('click', async () => {
