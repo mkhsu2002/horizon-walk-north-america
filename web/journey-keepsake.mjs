@@ -21,6 +21,18 @@ export function manualMilestones(totalMm) {
   };
 }
 
+// Call with the validated Manual store result. Derived on demand; no session,
+// dates, or rewards are attached to the preview.
+export function manualReturnPreview(totalMm) {
+  if (!Number.isSafeInteger(totalMm) || totalMm <= 0) return null;
+  const { next, remainingToNextMm } = routeProgress(totalMm);
+  return next ? {
+    name: next.name,
+    teaser: next.teaser,
+    steps: Math.ceil(remainingToNextMm / 700),
+  } : { completed: true };
+}
+
 // A snapshot of the valid ledger now, not a historical claim about when a stamp
 // was earned. Zero-step Manual entries do not count as walking days.
 export function manualJourneyNote(ledger) {

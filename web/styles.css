@@ -495,6 +495,10 @@ button:disabled { opacity: 0.4; cursor: not-allowed; }
 }
 
 @media screen {
+  .return-walk { margin-top:.75rem; border-left:3px solid #8b3021; border-radius:0 .35rem .35rem 0; background:#fff7e4; padding:.62rem .78rem; }
+  .return-walk h2 { margin:.14rem 0; font:700 clamp(1.1rem,2.3vw,1.4rem)/1.15 Georgia,serif; letter-spacing:normal; text-transform:none; }
+  .return-walk p:not(.example-label) { font-size:.85rem; color:var(--clr-muted); }
+  #return-walk-distance { font-weight:700; }
   .hero-copy .hero-lede { margin-top:.7rem; max-width:38ch; color:var(--clr-muted); }
   .hero-actions, .after-save { display:flex; flex-wrap:wrap; gap:.5rem; margin:.9rem 0 .55rem; }
   .hero-actions button, .after-save button { min-height:44px; }

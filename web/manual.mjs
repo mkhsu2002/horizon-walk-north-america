@@ -1,4 +1,4 @@
-import { manualMilestones, manualJourneyNote } from './journey-keepsake.mjs';
+import { manualMilestones, manualJourneyNote, manualReturnPreview } from './journey-keepsake.mjs';
 import { challengeDate, createManualState, setManualDay, saveManualPostcard } from './manual-engine.mjs';
 
 import { createManualPostcards, MANUAL_SHELF_KEY } from './manual-postcards.mjs';
@@ -14,19 +14,48 @@ const store = createManualStore({ storage, locks: navigator.locks, postcards });
 let ledger = null;
 let formDirty = false;
 
+function renderReturnWalk(validLedger) {
+  const preview = manualReturnPreview(validLedger?.totalMm);
+  const strip = el('return-walk');
+  const demo = el('hero-demo');
+  const manual = el('hero-manual');
+  strip.hidden = !preview;
+  const first = preview ? manual : demo;
+  const row = first.parentElement;
+  if (row.firstElementChild !== first) row.prepend(first);
+  for (const [button, primary] of [[manual, Boolean(preview)], [demo, !preview]]) {
+    button.classList.toggle('btn-primary', primary);
+    button.classList.toggle('btn-secondary', !primary);
+  }
+  const title = el('return-walk-title');
+  const story = el('return-walk-story');
+  const distance = el('return-walk-distance');
+  title.textContent = preview
+    ? preview.completed ? 'Illinois chapter complete' : 'Next postcard: ' + preview.name
+    : '';
+  story.textContent = preview?.teaser ?? '';
+  distance.textContent = preview?.steps ? stepLabel(preview.steps) + ' to go' : '';
+  story.hidden = !story.textContent;
+  distance.hidden = !distance.textContent;
+}
+
+
 function refresh() {
   try {
     const latest = store.read();
     // A clearing/removal event is not a valid replacement for already loaded progress.
     if (latest) ledger = latest;
+    renderReturnWalk(latest);
     render();
     if (!formDirty) existingTotal();
   } catch {
+    renderReturnWalk(null);
     announce('Saved Manual progress could not be read. Your entries were not replaced.');
   }
 }
 function didCommit(next) {
   ledger = next;
+  renderReturnWalk(next);
   render();
   window.dispatchEvent(new Event('route66:manual-ledger'));
 }
