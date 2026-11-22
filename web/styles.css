@@ -474,3 +474,15 @@ button:disabled { opacity: 0.4; cursor: not-allowed; }
   .passport .btn-secondary:hover:not(:disabled) { background:#ebddc9; }
 }
 @media screen and (max-width:650px) { .journey-actions { width:100%; } }
+
+/* Match the warm road journal on screen; the passport print layout is unchanged. */
+@media screen {
+  #postcard, .route-intro {
+    background:#fffaf0;
+    border-color:#c9b79a;
+    color:#272823;
+  }
+  #postcard .postcard-stamp { color:#5d5141; }
+  #btn-save-postcard:not(:disabled) { background:#8b3021; color:#fffaf0; border-color:#8b3021; }
+  #btn-save-postcard:not(:disabled):hover { background:#702719; }
+}
