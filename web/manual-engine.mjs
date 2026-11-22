@@ -18,6 +18,14 @@ const MM_PER_STEP       = 700;
 const AWARD_THRESHOLDS  = [4_200_000, 12_600_000, 17_703_000];
 const AWARD_KEYS        = ['firstBadge', 'secondBadge', 'il01'];
 
+// B.C. stayed at UTC−07 instead of falling back on Nov 1, 2026. Its legal
+// change was March 9, but old and updated clocks agreed until the skipped
+// November change (02:00 PDT = 09:00Z). Limit the override to that divergence.
+// https://news.gov.bc.ca/releases/2026AG0013-000209
+// https://www.iana.org/time-zones/releases/2026b (Canada/Pacific aliases Vancouver)
+const VANCOUVER_SKIPPED_FALLBACK = Date.UTC(2026, 10, 1, 9);
+const SEVEN_HOURS_MS = 7 * 60 * 60 * 1000;
+
 // ---------------------------------------------------------------------------
 // Internal helpers
 // ---------------------------------------------------------------------------
@@ -28,6 +36,14 @@ const AWARD_KEYS        = ['firstBadge', 'secondBadge', 'il01'];
  * Returns a string like '2025-07-04'.
  */
 function _isoDateInZone(nowMs, zone) {
+  const normalizedZone = zone.toLowerCase();
+  if (nowMs >= VANCOUVER_SKIPPED_FALLBACK &&
+      (normalizedZone === 'america/vancouver' || normalizedZone === 'canada/pacific')) {
+    // Extract only the civil date from UTC−07; never change the ledger's zone
+    // identifier, existing date keys, or the device's time-zone settings.
+    nowMs -= SEVEN_HOURS_MS;
+    zone = 'UTC';
+  }
   const parts = new Intl.DateTimeFormat('en-CA', {
     timeZone : zone,
     year     : 'numeric',

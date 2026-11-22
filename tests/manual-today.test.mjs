@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { createManualState, setManualDay } from '../web/manual-engine.mjs';
+import { challengeDate, createManualState, setManualDay } from '../web/manual-engine.mjs';
 import { DEMO_STORAGE_KEY } from '../web/demo-store.mjs';
 import { MANUAL_STORAGE_KEY } from '../web/manual-store.mjs';
 
@@ -127,4 +127,36 @@ test('hero preserves a same-day unsaved edit without showing the earlier-draft c
   assert.equal(f.field.value, '6234');
   assert.equal(f.get('manual-today-choice').hidden, true);
   assert.equal(f.read().days[day1], 6000);
+});
+
+test('Vancouver midnight is consistent under stale and updated zone data, without changing Seattle', async t => {
+  const original = Intl.DateTimeFormat;
+  const fixtureZones = new Set(['America/Vancouver', 'Canada/Pacific']);
+  const instants = ['2026-11-22T06:59:59Z', '2026-11-22T07:00:00Z', '2026-11-22T07:30:00Z'].map(Date.parse);
+  const oldDate = '2026-11-21', newDate = '2026-11-22';
+
+  for (const zoneModel of ['America/Los_Angeles', 'Etc/GMT+7']) {
+    const patched = t.mock.method(Intl, 'DateTimeFormat', function (locales, opts) {
+      return new original(locales, {
+        ...opts, timeZone: fixtureZones.has(opts?.timeZone) ? zoneModel : opts?.timeZone,
+      });
+    });
+    try {
+      for (const fixedZone of fixtureZones) {
+        assert.deepEqual(instants.map(n => challengeDate(n, fixedZone)), [oldDate, newDate, newDate]);
+        assert.equal(createManualState(instants[1], fixedZone).activatedOn, newDate);
+        const prior = setManualDay(createManualState(instants[0], fixedZone), oldDate, 6000, instants[0]);
+        assert.throws(() => setManualDay(prior, newDate, 8000, instants[0]), /future/);
+        const next = setManualDay(prior, challengeDate(instants[2], fixedZone), 8000, instants[2]);
+        assert.deepEqual(next.days, { [oldDate]: 6000, [newDate]: 8000 });
+        assert.equal(next.zone, fixedZone);
+      }
+      // Seattle uses the same rule as Los Angeles (IANA has no America/Seattle).
+      assert.deepEqual(instants.map(n => challengeDate(n, 'America/Los_Angeles')), [oldDate, oldDate, oldDate]);
+      assert.equal(challengeDate(instants[2], 'America/Dawson_Creek'), newDate);
+    } finally { patched.mock.restore(); }
+  }
+  const preTransition = Date.parse('2026-02-01T07:30:00Z');
+  assert.equal(challengeDate(preTransition, 'America/Vancouver'), '2026-01-31');
+  assert.equal(challengeDate(preTransition, 'Canada/Pacific'), '2026-01-31');
 });
