@@ -524,3 +524,18 @@ button:disabled { opacity: 0.4; cursor: not-allowed; }
   .departure-card { grid-template-columns:1fr; }
   .departure-art img { height:auto; aspect-ratio:3.75; }
 }
+
+
+@media screen {
+  #demo-departure > summary { cursor:pointer; color:var(--clr-muted); padding:.55rem 0; }
+  .demo-arrival { display:grid; grid-template-columns: minmax(0,1fr) minmax(0,1fr); }
+  .demo-arrival .postcard-art { margin:0; max-width:23rem; }
+  .demo-arrival .postcard-art img { width:100%; height:auto; display:block; }
+  #demo-arrival-heading:focus { outline:2px solid #793624; outline-offset:.15rem; }
+  #demo-arrival-save button, #demo-passport-shortcut { min-height:44px; }
+  #demo-arrival-save:not(:empty) { margin-top:.65rem; }
+  #demo-current-card-link { display:inline-block; margin-bottom:.65rem; }
+}
+@media screen and (max-width:650px) {
+  .demo-arrival { grid-template-columns:1fr; align-items:start; }
+}

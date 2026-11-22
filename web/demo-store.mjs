@@ -82,9 +82,11 @@ export function createDemoStore({ storage, locks, newGeneration }) {
   }
   function save(observedGeneration,id) {
     return transact(observedGeneration,current=>{
-      if(!ready(id)||!current.shelf.earned.includes(id)) throw new Error('Postcard is unavailable or locked');
+      if(!current.shelf.earned.includes(id) || !(id === 'IL01' ? current.state.awarded.has(17_703_000) : ready(id))) {
+        throw new Error('Postcard is unavailable or locked');
+      }
       const shelf=savePostcard(current.shelf,'Demo',id);
-      return shelf===current.shelf?current:{...current,shelf};
+      return shelf===current.shelf?current:{...current,shelf,postcardSaved:current.postcardSaved || id==='IL01'};
     });
   }
   return {read,initialize,transact,reset,save};

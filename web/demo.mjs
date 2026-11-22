@@ -1,4 +1,4 @@
-import { addDeparture, DEPARTURE_ID, demoJourneyNote } from './journey-keepsake.mjs';
+import { addDeparture, DEPARTURE_ID } from './journey-keepsake.mjs';
 import { routeProgress, demoStepsToVisibleStop } from './route-catalog.mjs';
 /**
  * Horizon Walk the World — Route 66 · English Demo
@@ -13,7 +13,19 @@ import { routeProgress, demoStepsToVisibleStop } from './route-catalog.mjs';
  */
 
 import { createState, applyBatch } from './step-engine.mjs';
-import { renderGallery } from './postcard-gallery.mjs';
+import { postcardFigure, renderGallery } from './postcard-gallery.mjs';
+import { POSTCARD_MEDIA } from './postcard-media.mjs';
+
+const demoMedia = {
+  ...POSTCARD_MEDIA,
+  IL01: {
+    src: 'il01-illustration.png', width: 1536, height: 1024,
+    alt: 'Interpretive illustration of North Lawndale and its elevated train on Route 66',
+    caption: 'North Lawndale · Illustration',
+    credit: 'Original Route 66 project illustration, made with OpenAI ImageGen.',
+    storySource: 'https://www.transitchicago.com/cta-and-north-lawndale-organizations-celebrate-the-100th-anniversary-of-route-66/',
+  },
+};
 
 import { createDemoStore, DEMO_STORAGE_KEY, INITIAL_GENERATION, DemoResetConflict } from './demo-store.mjs';
 
@@ -28,9 +40,6 @@ let generation = INITIAL_GENERATION;
 const MM_PER_KM      = 1_000_000;
 const STEPS_PER_STEP = 700; // mm per step
 
-const IL01_STEPS   = 25_290;           // cumulative target for top-up
-const IL01_MM      = IL01_STEPS * STEPS_PER_STEP; // 17_703_000
-
 const BADGE_META = {
   4_200_000:  { id: 'badge-4200',  label: 'First Steps (4.2 km)',           shortLabel: 'First Steps'    },
   12_600_000: { id: 'badge-12600', label: 'Route Wanderer (12.6 km)',        shortLabel: 'Route Wanderer' },
@@ -40,7 +49,6 @@ const BADGE_META = {
 // ── State ─────────────────────────────────────────────────────────────────────
 
 let appState      = createState();
-let postcardSaved = false;
 let walkingToStop = false;
 
 
@@ -52,9 +60,12 @@ const displayKm       = document.getElementById('display-km');
 const heroDemo = document.getElementById('hero-demo');
 const departure = document.getElementById('demo-departure');
 const btnTopup        = document.getElementById('btn-topup');
-const btnSavePostcard = document.getElementById('btn-save-postcard');
-const postcard        = document.getElementById('postcard');
-const postcardHint    = document.getElementById('postcard-hint');
+const demoPanel = document.getElementById('demo-panel');
+const arrival = document.getElementById('demo-arrival');
+const arrivalHeading = document.getElementById('demo-arrival-heading');
+const arrivalStatus = document.getElementById('demo-arrival-status');
+const passportShortcut = document.getElementById('demo-passport-shortcut');
+let renderedArrival = '';
 const announcer       = document.getElementById('live-announcer');
 
 // ── Live announcer ────────────────────────────────────────────────────────────
@@ -83,12 +94,16 @@ function render(state, newAwards = []) {
   btnTopup.hidden = !next;
   btnTopup.disabled = walkingToStop || !next;
   btnTopup.dataset.stopId = next?.id ?? '';
-  btnTopup.textContent = next ? 'Walk to ' + next.name : 'Illinois chapter complete';
+  btnTopup.textContent = next ? 'Simulate walk to ' + next.name : 'Illinois chapter complete';
 
-  departure.hidden = !state.seenIds.has(DEPARTURE_ID);
+  if (!state.seenIds.has(DEPARTURE_ID)) {
+    departure.hidden = true;
+    departure.open = true;
+  } else if (departure.hidden) {
+    departure.hidden = false;
+    departure.open = routeProgress(state.totalMm).current.id === 'IL00';
+  }
   heroDemo.textContent = state.totalMm === 0 ? 'Try 500 simulated steps' : 'Continue my Demo Walk';
-  document.getElementById('demo-card-note').textContent = demoJourneyNote(state);
-  document.getElementById('demo-next-actions').hidden = !postcardSaved;
   // Badges
   for (const [mmStr, meta] of Object.entries(BADGE_META)) {
     const mm  = Number(mmStr);
@@ -115,24 +130,6 @@ function render(state, newAwards = []) {
     }
   }
 
-  // Postcard
-  const il01Unlocked = state.awarded.has(17_703_000);
-  if (il01Unlocked) {
-    postcard.classList.remove('postcard--hidden');
-    postcard.removeAttribute('aria-hidden');
-    postcardHint.textContent = postcardSaved
-      ? 'Postcard saved locally.'
-      : 'Your postcard is ready!';
-    btnSavePostcard.disabled = postcardSaved;
-    btnSavePostcard.textContent = postcardSaved ? 'Postcard saved ✓' : 'Save postcard';
-  } else {
-    postcard.classList.add('postcard--hidden');
-    postcard.setAttribute('aria-hidden','true');
-    postcardHint.textContent = 'Reach IL01 to unlock your postcard.';
-    btnSavePostcard.disabled = true;
-    btnSavePostcard.textContent = 'Save postcard';
-  }
-
   // Announce new awards
   if (newAwards.length > 0) {
     const labels = newAwards.map(mm => BADGE_META[mm]?.shortLabel ?? String(mm)).join(', ');
@@ -140,33 +137,83 @@ function render(state, newAwards = []) {
   }
 }
 
-// Keep the flat v1 ledger contract; only the generation field is new.
+function renderArrival(next) {
+  const stop = routeProgress(next.state.totalMm).current;
+  const art = next.shelf.earned.includes(stop.id) ? demoMedia[stop.id] : null;
+  const count = next.shelf.saved.length;
+  passportShortcut.textContent = 'View / print my passport (' + count + (count === 1 ? ' card)' : ' cards)');
+  passportShortcut.disabled = !next.state.awarded.has(4_200_000);
+  document.getElementById('demo-collection-prompt').hidden = Boolean(art);
+  document.getElementById('demo-current-card-link').hidden = !art;
+  arrival.hidden = !art;
+  if (!art) { renderedArrival = ''; return null; }
+  const saved = next.shelf.saved.includes(stop.id);
+  const key = JSON.stringify([next.generation, stop.id, saved]);
+  if (key === renderedArrival) return stop.id;
+  if (renderedArrival === '') departure.open = false;
+  renderedArrival = key;
+  arrivalHeading.textContent = 'Arrived at ' + stop.name;
+  arrivalStatus.textContent = saved ? 'Saved to your Demo passport.' : 'Postcard unlocked · Not saved yet.';
+  document.getElementById('demo-arrival-art').replaceChildren(postcardFigure(art));
+  const slot = document.getElementById('demo-arrival-save');
+  slot.replaceChildren();
+  if (!saved) {
+    const button = document.createElement('button');
+    button.type = 'button';
+    button.className = 'btn-primary';
+    button.textContent = 'Save ' + stop.name + ' postcard';
+    button.addEventListener('click', async () => {
+      if (button.disabled) return;
+      button.disabled = true;
+      try {
+        const result = await store.save(next.generation, stop.id);
+        const keepFocus = document.activeElement === button || document.activeElement === document.body;
+        const displayedId = show(result);
+        if (displayedId === stop.id && !demoPanel.hidden && keepFocus) passportShortcut.focus();
+      } catch (error) {
+        if (button.isConnected) button.disabled = false;
+        failed(error);
+      }
+    });
+    slot.append(button);
+  }
+  return stop.id;
+}
+
 function show(next, awards = []) {
   generation=next.generation;
   appState=next.state;
-  postcardSaved=next.postcardSaved;
   render(appState, awards);
+  const arrivalId = renderArrival(next);
   const shelfStatus=document.getElementById('demo-shelf-status');
-  const viewedGeneration=next.generation;
   renderGallery(document.getElementById('demo-shelf'),shelfStatus,next.shelf,
-    async id=>show(await store.save(viewedGeneration,id)));
+    async id=>show(await store.save(next.generation,id)), { media: demoMedia, excludeId: arrivalId });
   window.dispatchEvent(new Event('route66:demo-ledger'));
+  return arrivalId;
 }
 function readLatest() {
   try { show(store.read()); } catch { announce('Saved Demo progress could not be read.'); }
 }
 async function dispatch(steps, stopId = null) {
   const batchId=crypto.randomUUID();
-  let awards=[];
+  let awards=[], advanced=false;
   try {
     const next=await store.transact(generation, current=>{
       const count=stopId ? demoStepsToVisibleStop(current.state.totalMm, stopId) : steps;
       if (!count) return current;
       const result=applyBatch(current.state,{id:batchId,steps:count});
       awards=result.newAwards;
+      advanced = result.state !== current.state;
       return result.state===current.state ? current : {...current,state:result.state};
     });
-    show(next,awards);
+    const arrivalId = show(next,awards);
+    if (advanced && stopId && arrivalId === stopId && !demoPanel.hidden) {
+      const focused = document.activeElement;
+      if (focused === btnTopup || focused === document.body) {
+        arrival.scrollIntoView({ block: 'start' });
+        arrivalHeading.focus({ preventScroll: true });
+      }
+    }
   } catch(error) { failed(error); }
 }
 function failed(error) {
@@ -197,7 +244,6 @@ heroDemo.addEventListener('click', async () => {
   finally { departurePending = false; }
 });
 document.getElementById('departure-onward').addEventListener('click', focusNextStop);
-document.querySelector('[data-keep-walking]').addEventListener('click', focusNextStop);
 document.getElementById('btn-6k').addEventListener('click',()=>dispatch(6_000));
 document.getElementById('btn-12k').addEventListener('click',()=>dispatch(12_000));
 btnTopup.addEventListener('click', async event => {
@@ -212,16 +258,6 @@ btnTopup.addEventListener('click', async event => {
     walkingToStop = false;
     btnTopup.disabled = btnTopup.hidden;
   }
-});
-btnSavePostcard.addEventListener('click',async()=>{
-  try {
-    const next=await store.transact(generation,current=>{
-      if(current.postcardSaved || !current.state.awarded.has(IL01_MM)) return current;
-      return {...current,postcardSaved:true};
-    });
-    show(next);
-    if(next.postcardSaved) announce('Postcard saved in this browser.');
-  } catch(error) { failed(error); }
 });
 document.getElementById('btn-reset').addEventListener('click',async()=>{
   const observed=generation;

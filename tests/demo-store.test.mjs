@@ -77,3 +77,25 @@ test('malformed v2 shelf fails closed even with valid v1 fallback',async()=>{
   await assert.rejects(a.initialize(),/Invalid saved Demo shelf/);
   assert.equal(data.get(DEMO_STORAGE_KEY),invalid);
 });
+
+test('guided first and second arrivals unlock without saving, then explicit saves count 0 → 1 → 2', async () => {
+  const { data, tab } = fixture(), a = tab(), b = tab(), g = a.read().generation;
+  await assert.rejects(a.save(g, 'IL01'), /locked/);
+  await assert.rejects(a.save(g, 'IL02'), /locked/);
+  const arrival1 = await a.transact(g, add('first-arrival', 25290));
+  assert.deepEqual(arrival1.shelf.earned, ['IL01']);
+  assert.deepEqual(arrival1.shelf.saved, []);
+  await assert.rejects(a.save(g, 'IL02'), /locked/);
+  const save1 = await a.save(g, 'IL01');
+  assert.equal(save1.postcardSaved, true); // Existing IL01 compatibility flag.
+  assert.deepEqual(save1.shelf.saved, ['IL01']);
+  const arrival2 = await b.transact(g, add('second-arrival', 64373));
+  assert.deepEqual(arrival2.shelf.earned, ['IL01', 'IL02']);
+  assert.deepEqual(arrival2.shelf.saved, ['IL01']);
+  assert.deepEqual((await a.save(g, 'IL02')).shelf.saved, ['IL01', 'IL02']);
+  assert.deepEqual((await b.save(g, 'IL02')).shelf.saved, ['IL01', 'IL02']);
+  await a.reset(g);
+  await assert.rejects(b.save(g, 'IL02'), DemoResetConflict);
+  assert.deepEqual(a.read().shelf.saved, []);
+  assert.equal(data.get('horizon.route66.manual.v1'), 'do not modify');
+});
